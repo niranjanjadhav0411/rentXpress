@@ -15,4 +15,7 @@ public class Car {
     private String brand;
     private String model;
     private double pricePerDay;
+
+    public void setAvailable(boolean b) {
+    }
 }

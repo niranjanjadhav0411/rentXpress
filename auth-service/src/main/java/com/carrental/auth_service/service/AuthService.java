@@ -10,6 +10,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.carrental.auth_service.security.JwtService;
 
+import java.util.Optional;
+
 @Service
 //@RequiredArgsConstructor
 public class AuthService {
@@ -53,4 +55,6 @@ public class AuthService {
 
         return new AuthResponse(token);
     }
+
+
 }

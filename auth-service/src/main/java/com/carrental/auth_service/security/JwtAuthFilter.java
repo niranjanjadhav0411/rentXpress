@@ -1,27 +1,21 @@
 package com.carrental.auth_service.security;
 
-import com.carrental.auth_service.entity.User;
 import com.carrental.auth_service.repository.UserRepository;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
-import java.util.List;
 
-import static javax.crypto.Cipher.SECRET_KEY;
+import java.io.IOException;
 
 @Component
-//@RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
@@ -58,41 +52,26 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (email != null &&
                 SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            userRepository.findByEmail(email)
-                    .ifPresent(user -> {
+            userRepository.findByEmail(email).ifPresent(user -> {
 
-                        UsernamePasswordAuthenticationToken auth =
-                                new UsernamePasswordAuthenticationToken(
-                                        user.getEmail(),
-                                        null,
-                                        List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole()))
-                                );
+                UserDetails userDetails = User.builder()
+                        .username(user.getEmail())
+                        .password(user.getPassword())
+                        .authorities(user.getRole().name())
+                        .build();
 
-                        SecurityContextHolder.getContext()
-                                .setAuthentication(auth);
-                    });
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(
+                                userDetails,
+                                null,
+                                userDetails.getAuthorities()
+                        );
+
+                SecurityContextHolder.getContext()
+                        .setAuthentication(authentication);
+            });
         }
 
         filterChain.doFilter(request, response);
     }
-
-    Claims claims = Jwts.parserBuilder()
-            .setSigningKey(SECRET_KEY.getBytes())
-            .build()
-            .parseClaimsJws(token)
-            .getBody();
-
-    String email = claims.getSubject();
-
-    List<String> roles = claims.get("roles", List.class);
-
-    List<GrantedAuthority> authorities = roles.stream()
-            .map(SimpleGrantedAuthority::new)
-            .toList();
-
-    UsernamePasswordAuthenticationToken authToken =
-            new UsernamePasswordAuthenticationToken(
-                    userDetails, null, authorities);
-
-SecurityContextHolder.getContext().setAuthentication(authToken);
 }

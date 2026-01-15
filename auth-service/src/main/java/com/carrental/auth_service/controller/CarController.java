@@ -2,9 +2,7 @@ package com.carrental.auth_service.controller;
 
 import com.carrental.auth_service.entity.Car;
 import com.carrental.auth_service.repository.CarRepository;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -21,5 +19,11 @@ public class CarController {
     @GetMapping
     public List<Car> getAllCars() {
         return carRepository.findAll();
+    }
+
+    @GetMapping("/{id}")
+    public Car getCarById(@PathVariable Long id) {
+        return carRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Car not found"));
     }
 }

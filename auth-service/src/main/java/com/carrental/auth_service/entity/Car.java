@@ -1,9 +1,6 @@
 package com.carrental.auth_service.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,6 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "car")
 public class Car {
 
     @Id
@@ -20,6 +18,9 @@ public class Car {
 
     private String brand;
     private String model;
+    private String image;
+
+    @Column(name = "price_per_day")
     private double pricePerDay;
     private boolean available;
 }

@@ -1,88 +1,80 @@
 package com.carrental.auth_service.controller;
 
 import com.carrental.auth_service.dto.BookingRequest;
+import com.carrental.auth_service.dto.BookingResponse;
 import com.carrental.auth_service.entity.Booking;
-import com.carrental.auth_service.entity.Car;
-import com.carrental.auth_service.entity.User;
-import com.carrental.auth_service.repository.BookingRepository;
-import com.carrental.auth_service.repository.CarRepository;
-import com.carrental.auth_service.repository.UserRepository;
+import com.carrental.auth_service.service.BookingService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/bookings")
 @CrossOrigin(origins = "http://localhost:5173")
+@RequiredArgsConstructor
 public class BookingController {
 
-    private final BookingRepository bookingRepository;
-    private final CarRepository carRepository;
-    private final UserRepository userRepository;
+    private final BookingService bookingService;
 
-    public BookingController(
-            BookingRepository bookingRepository,
-            CarRepository carRepository,
-            UserRepository userRepository) {
-        this.bookingRepository = bookingRepository;
-        this.carRepository = carRepository;
-        this.userRepository = userRepository;
-    }
-
-    // ✅ CREATE BOOKING
+    // ================= CREATE BOOKING =================
     @PostMapping
-    public Booking createBooking(
-            @RequestBody BookingRequest request,
-            @AuthenticationPrincipal UserDetails userDetails) {
-
+    public ResponseEntity<BookingResponse> createBooking(
+            @Valid @RequestBody BookingRequest request,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
         if (userDetails == null) {
             throw new RuntimeException("Unauthorized");
         }
 
-        User user = userRepository.findByEmail(userDetails.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        Booking booking = bookingService.createBooking(
+                request,
+                userDetails.getUsername()
+        );
 
-        Car car = carRepository.findById(request.getCarId())
-                .orElseThrow(() -> new RuntimeException("Car not found"));
+        BookingResponse response = new BookingResponse();
+        response.setId(booking.getId());
+        response.setCarId(booking.getCar().getId());
+        response.setCarName(booking.getCar().getName());
+        response.setStartDate(booking.getStartDate());
+        response.setEndDate(booking.getEndDate());
+        response.setTotalPrice(booking.getTotalPrice());
+        response.setStatus(booking.getStatus().name());
 
-        LocalDate startDate = request.getStartDate();
-        LocalDate endDate = request.getEndDate();
-
-        if (startDate.isAfter(endDate) || startDate.isBefore(LocalDate.now())) {
-            throw new RuntimeException("Invalid booking dates");
-        }
-
-        long totalDays = ChronoUnit.DAYS.between(startDate, endDate) + 1;
-        double totalPrice = totalDays * car.getPricePerDay();
-
-        Booking booking = new Booking();
-        booking.setUser(user);
-        booking.setCar(car);
-        booking.setStartDate(startDate);
-        booking.setEndDate(endDate);
-        booking.setTotalDays((int) totalDays);
-        booking.setTotalPrice(totalPrice);
-        booking.setStatus("CONFIRMED");
-
-        return bookingRepository.save(booking);
+        return ResponseEntity.ok(response);
     }
 
-    // ✅ GET LOGGED-IN USER BOOKINGS
+    // ================= GET LOGGED-IN USER BOOKINGS =================
     @GetMapping("/my")
-    public List<Booking> getMyBookings(
-            @AuthenticationPrincipal UserDetails userDetails) {
-
+    public ResponseEntity<List<Booking>> getMyBookings(
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
         if (userDetails == null) {
             throw new RuntimeException("Unauthorized");
         }
 
-        User user = userRepository.findByEmail(userDetails.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        List<Booking> bookings =
+                bookingService.getUserBookings(userDetails.getUsername());
 
-        return bookingRepository.findByUser(user);
+        return ResponseEntity.ok(bookings);
+    }
+
+    // ================= CANCEL BOOKING =================
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<String> cancelBooking(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        if (userDetails == null) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        bookingService.cancelBooking(id, userDetails.getUsername());
+
+        return ResponseEntity.ok("Booking cancelled successfully");
     }
 }

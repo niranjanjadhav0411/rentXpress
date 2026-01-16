@@ -2,9 +2,10 @@ package com.carrental.auth_service.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "booking")
+@Table(name = "bookings")
 public class Booking {
 
     @Id
@@ -31,16 +32,32 @@ public class Booking {
     @Column(nullable = false)
     private double totalPrice;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String status = "CONFIRMED";
+    private BookingStatus status;
 
-    // ✅ GETTERS
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    // ✅ Automatically set values before saving
+    @PrePersist
+    public void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.status = BookingStatus.PENDING;
+    }
+
+    // ================= GETTERS =================
+
     public Long getId() {
         return id;
     }
 
     public Car getCar() {
         return car;
+    }
+
+    public User getUser() {
+        return user;
     }
 
     public LocalDate getStartDate() {
@@ -59,17 +76,22 @@ public class Booking {
         return totalPrice;
     }
 
-    public String getStatus() {
+    public BookingStatus getStatus() {
         return status;
     }
 
-    public User getUser() {
-        return user;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    // ✅ SETTERS (THIS WAS MISSING)
+    // ================= SETTERS =================
+
     public void setCar(Car car) {
         this.car = car;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public void setStartDate(LocalDate startDate) {
@@ -88,11 +110,7 @@ public class Booking {
         this.totalPrice = totalPrice;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(BookingStatus status) {
         this.status = status;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
     }
 }

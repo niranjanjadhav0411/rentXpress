@@ -16,5 +16,18 @@ API.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
-export const createBooking = (data) => API.post("/bookings", data);
-export const getMyBookings = () => API.get("/bookings/my");
+export const createBooking = (data) => {
+  return axios.post("/api/bookings", data, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
+  });
+};
+export const getMyBookings = () => {
+  return axios.get("/api/bookings/my", {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+};

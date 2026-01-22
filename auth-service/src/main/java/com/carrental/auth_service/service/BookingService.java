@@ -1,6 +1,7 @@
 package com.carrental.auth_service.service;
 
 import com.carrental.auth_service.dto.BookingRequest;
+import com.carrental.auth_service.dto.BookingResponse;
 import com.carrental.auth_service.entity.Booking;
 import com.carrental.auth_service.entity.BookingStatus;
 import com.carrental.auth_service.entity.Car;
@@ -10,9 +11,11 @@ import com.carrental.auth_service.repository.CarRepository;
 import com.carrental.auth_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -23,13 +26,9 @@ public class BookingService {
     private final CarRepository carRepository;
     private final UserRepository userRepository;
 
-    // ================= CREATE BOOKING =================
-    public Booking createBooking(
-            BookingRequest request,
-            String userEmail
-    ) {
+    /* ===================== CREATE BOOKING ===================== */
+    public Booking createBooking(BookingRequest request, String userEmail) {
 
-        //  Validate dates
         LocalDate startDate = request.getStartDate();
         LocalDate endDate = request.getEndDate();
 
@@ -37,32 +36,26 @@ public class BookingService {
             throw new RuntimeException("Invalid booking dates");
         }
 
-        //  Get car
         Car car = carRepository.findById(request.getCarId())
                 .orElseThrow(() -> new RuntimeException("Car not found"));
 
-        //  Check booking conflicts
-        List<Booking> conflicts =
-                bookingRepository.findConflictingBookings(
-                        car.getId(),
-                        startDate,
-                        endDate,
-                        List.of(BookingStatus.PENDING, BookingStatus.CONFIRMED)
-                );
+        List<Booking> conflicts = bookingRepository.findConflictingBookings(
+                car.getId(),
+                startDate,
+                endDate,
+                List.of(BookingStatus.PENDING, BookingStatus.CONFIRMED)
+        );
 
         if (!conflicts.isEmpty()) {
             throw new RuntimeException("Car is already booked for selected dates");
         }
 
-        //  Get user
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        //  Calculate days & price
         long days = ChronoUnit.DAYS.between(startDate, endDate) + 1;
         double totalPrice = days * car.getPricePerDay();
 
-        //  Create booking
         Booking booking = new Booking();
         booking.setCar(car);
         booking.setUser(user);
@@ -75,27 +68,50 @@ public class BookingService {
         return bookingRepository.save(booking);
     }
 
-    // ================= GET USER BOOKINGS =================
-    public List<Booking> getUserBookings(String username) {
+    /* ===================== CONFIRM BOOKING (FIXED) ===================== */
+    @Transactional
+    public Booking confirmBooking(Long bookingId, String email) {
 
-        User user = userRepository.findByEmail(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        return bookingRepository.findByUser(user);
-    }
-
-    // ================= CANCEL BOOKING =================
-    public Booking cancelBooking(Long bookingId, String email) {
-
-        Booking booking = bookingRepository.findById(bookingId)
+        Booking booking = bookingRepository
+                .findByIdAndUser_Email(bookingId, email)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
 
-        // Only owner can cancel
-        if (!booking.getUser().getEmail().equals(email)) {
-            throw new RuntimeException("You can cancel only your own bookings");
+        if (booking.getStatus() != BookingStatus.PENDING) {
+            throw new RuntimeException("Booking cannot be confirmed");
         }
 
-        // Cannot cancel completed or already cancelled bookings
+        booking.setStatus(BookingStatus.CONFIRMED);
+
+        // ✅ CRITICAL FIX
+        return bookingRepository.save(booking);
+    }
+
+    /* ===================== GET MY BOOKINGS ===================== */
+    public List<BookingResponse> getUserBookings(String email) {
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return bookingRepository.findByUser(user)
+                .stream()
+                .map(b -> new BookingResponse(
+                        b.getId(),
+                        b.getCar().getName(),
+                        b.getStartDate(),
+                        b.getEndDate(),
+                        b.getTotalPrice(),
+                        b.getStatus().name()
+                ))
+                .toList();
+    }
+
+    /* ===================== CANCEL BOOKING ===================== */
+    public Booking cancelBooking(Long bookingId, String email) {
+
+        Booking booking = bookingRepository
+                .findByIdAndUser_Email(bookingId, email)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
         if (booking.getStatus() == BookingStatus.CANCELLED ||
                 booking.getStatus() == BookingStatus.COMPLETED) {
             throw new RuntimeException("Booking cannot be cancelled");
@@ -105,17 +121,16 @@ public class BookingService {
         return bookingRepository.save(booking);
     }
 
-    // Booking Status
-    public Booking updateBookingStatus(Long bookingId, BookingStatus status) {
-
-        Booking booking = bookingRepository.findById(bookingId)
+    private BookingStatus status;
+    public void updateBookingStatus(Long id, BookingStatus bookingStatus) {
+        Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
 
-        if (booking.getStatus() != BookingStatus.PENDING) {
-            throw new RuntimeException("Only pending bookings can be updated");
-        }
-
         booking.setStatus(status);
-        return bookingRepository.save(booking);
+        bookingRepository.save(booking);
+    }
+
+    public List<Booking> getAllBookings() {
+        return bookingRepository.findAll();
     }
 }

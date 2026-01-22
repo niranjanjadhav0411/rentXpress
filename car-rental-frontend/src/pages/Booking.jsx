@@ -38,11 +38,6 @@ export default function Booking() {
   const totalPrice = car ? days * car.pricePerDay : 0;
 
   const handleBooking = async () => {
-    if (!startDate || !endDate) {
-      alert("Please select pickup and drop dates");
-      return;
-    }
-
     try {
       await createBooking({
         carId: car.id,
@@ -53,12 +48,12 @@ export default function Booking() {
       alert("Booking confirmed 🎉");
       navigate("/my-bookings");
     } catch (err) {
-      console.error(err);
+      const msg =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        "Booking failed";
 
-      const message =
-        err.response?.data?.message || err.response?.data || "Booking failed";
-
-      alert(message);
+      alert(msg); // or toast.error(msg)
     }
   };
 

@@ -9,9 +9,13 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
+
     List<Booking> findByUser(User user);
+
+    Optional<Booking> findByIdAndUser_Email(Long id, String email);
 
     @Query("""
         SELECT b FROM Booking b
@@ -25,4 +29,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("endDate") LocalDate endDate,
             @Param("statuses") List<BookingStatus> statuses
     );
+
+    List<Booking> findByUserId(Long id);
 }

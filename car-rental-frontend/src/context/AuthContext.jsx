@@ -1,47 +1,58 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useState } from "react";
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // ✅ Safe restore from localStorage
+  const getInitialAuth = () => {
+    try {
+      const storedUser = localStorage.getItem("user");
+      const token = localStorage.getItem("token");
 
-  // Restore auth state on app reload
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const token = localStorage.getItem("token");
+      if (!storedUser || storedUser === "undefined" || !token) {
+        return { user: null, loading: false };
+      }
 
-    if (storedUser && token) {
-      setUser(JSON.parse(storedUser));
+      return {
+        user: JSON.parse(storedUser),
+        loading: false,
+      };
+    } catch (err) {
+      console.error("Auth restore failed:", err);
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+      return { user: null, loading: false };
     }
-
-    setLoading(false);
-  }, []);
-
-  // Login (called from Login.jsx)
-  const login = (userData) => {
-    localStorage.setItem("user", JSON.stringify(userData));
-    setUser(userData);
   };
 
-  // Logout
+  const [{ user, loading }, setAuth] = useState(getInitialAuth);
+
+  // ✅ Login
+  const login = (userData, token) => {
+    localStorage.setItem("user", JSON.stringify(userData));
+    localStorage.setItem("token", token);
+    setAuth({ user: userData, loading: false });
+  };
+
+  // ✅ Logout
   const logout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
-    setUser(null);
+    setAuth({ user: null, loading: false });
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
+// ✅ Safe hook
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error("useAuth must be used within AuthProvider");
   }
   return context;
 };

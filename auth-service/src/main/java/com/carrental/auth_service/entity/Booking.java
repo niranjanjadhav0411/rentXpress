@@ -12,12 +12,12 @@ public class Booking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "car_id", nullable = false)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "car_id")
     private Car car;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id")
     private User user;
 
     @Column(nullable = false)
@@ -33,7 +33,7 @@ public class Booking {
     private double totalPrice;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+//    @Column(nullable = false)
     private BookingStatus status;
 
     @Column(nullable = false, updatable = false)

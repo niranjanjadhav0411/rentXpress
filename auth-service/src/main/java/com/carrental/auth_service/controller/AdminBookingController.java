@@ -17,45 +17,36 @@ public class AdminBookingController {
 
     private final BookingService bookingService;
 
-    // ✅ GET ALL BOOKINGS
     @GetMapping
     public ResponseEntity<List<BookingResponse>> getAllBookings() {
-
-        List<BookingResponse> responses = bookingService.getAllBookings()
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
-
-        return ResponseEntity.ok(responses);
+        return ResponseEntity.ok(
+                bookingService.getAllBookings()
+                        .stream()
+                        .map(this::mapToResponse)
+                        .toList()
+        );
     }
 
-    // ✅ APPROVE
     @PutMapping("/{id}/approve")
-    public ResponseEntity<String> approveBooking(@PathVariable Long id) {
+    public ResponseEntity<String> approve(@PathVariable Long id) {
         bookingService.updateBookingStatus(id, BookingStatus.CONFIRMED);
-        return ResponseEntity.ok("Booking approved");
+        return ResponseEntity.ok("Approved");
     }
 
-    // ✅ REJECT
     @PutMapping("/{id}/reject")
-    public ResponseEntity<String> rejectBooking(@PathVariable Long id) {
+    public ResponseEntity<String> reject(@PathVariable Long id) {
         bookingService.updateBookingStatus(id, BookingStatus.REJECTED);
-        return ResponseEntity.ok("Booking rejected");
+        return ResponseEntity.ok("Rejected");
     }
 
-    // 🔁 SAFE MAPPER
     private BookingResponse mapToResponse(Booking b) {
-        BookingResponse r = new BookingResponse();
-        r.setId(b.getId());
-        r.setStartDate(b.getStartDate());
-        r.setEndDate(b.getEndDate());
-        r.setTotalPrice(b.getTotalPrice());
-        r.setStatus(b.getStatus().name());
-
-        if (b.getCar() != null) {
-            r.setCarName(b.getCar().getBrand() + " " + b.getCar().getModel());
-        }
-
-        return r;
+        return new BookingResponse(
+                b.getId(),
+                b.getCar().getBrand() + " " + b.getCar().getModel(),
+                b.getStartDate(),
+                b.getEndDate(),
+                b.getTotalPrice(),
+                b.getStatus().name()
+        );
     }
 }

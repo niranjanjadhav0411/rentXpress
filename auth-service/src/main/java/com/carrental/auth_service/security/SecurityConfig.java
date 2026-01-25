@@ -33,7 +33,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/cars/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/bookings").hasRole("USER")
+                        .requestMatchers(HttpMethod.POST, "/api/bookings/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/bookings/my").hasRole("USER")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()

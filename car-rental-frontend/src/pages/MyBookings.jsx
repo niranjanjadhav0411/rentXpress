@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
+import api from "../services/api";
 import { useNavigate } from "react-router-dom";
-import { getMyBookings } from "../services/bookingService";
 
 export default function MyBookings() {
   const [bookings, setBookings] = useState([]);
@@ -8,16 +8,31 @@ export default function MyBookings() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    getMyBookings()
-      .then((res) => setBookings(res.data))
-      .catch((err) => {
-        if (err.response?.status === 403) {
-          alert("Session expired. Please login again.");
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    const fetchBookings = async () => {
+      try {
+        const res = await api.get("/bookings/my");
+        setBookings(res.data);
+      } catch (err) {
+        console.error("Failed to load bookings", err);
+
+        if (err.response?.status === 401 || err.response?.status === 403) {
+          alert("Please login to view your bookings");
           localStorage.removeItem("token");
           navigate("/login");
         }
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBookings();
   }, [navigate]);
 
   if (loading) return <p>Loading bookings...</p>;
@@ -25,17 +40,14 @@ export default function MyBookings() {
   return (
     <div>
       <h2>My Bookings</h2>
-
       {bookings.length === 0 ? (
-        <p>No bookings found.</p>
+        <p>No bookings found</p>
       ) : (
-        <ul>
-          {bookings.map((b) => (
-            <li key={b.id}>
-              <strong>{b.carName}</strong> — {b.status}
-            </li>
-          ))}
-        </ul>
+        bookings.map((b) => (
+          <div key={b.id}>
+            {b.car?.name || "Car"} — {b.status}
+          </div>
+        ))
       )}
     </div>
   );

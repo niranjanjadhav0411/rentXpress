@@ -10,8 +10,8 @@ export default function Cars() {
   useEffect(() => {
     const fetchCars = async () => {
       try {
-        const data = await getAllCars();
-        setCars(data || []);
+        const carsData = await getAllCars();
+        setCars(Array.isArray(carsData) ? carsData : []);
       } catch (err) {
         console.error("Failed to load cars", err);
         setError("Unable to load cars");
@@ -48,7 +48,7 @@ export default function Cars() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {cars.map((car) => (
           <div
-            key={car.id}
+            key={car._id}
             className="bg-gray-900 rounded-2xl overflow-hidden shadow-lg hover:scale-[1.02] transition"
           >
             <img
@@ -69,7 +69,7 @@ export default function Cars() {
               <p className="text-gray-400">₹{car.pricePerDay} / day</p>
 
               <Link
-                to={`/cars/${car.id}`}
+                to={`/cars/${car._id}`}
                 className="block mt-3 text-center bg-cyan-600 hover:bg-cyan-500 py-2 rounded-xl font-semibold transition"
               >
                 View Details

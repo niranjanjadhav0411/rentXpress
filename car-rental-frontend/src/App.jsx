@@ -22,7 +22,14 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          <Route path="/cars" element={<Cars />} />
+          <Route
+            path="/cars"
+            element={
+              <ProtectedRoute>
+                <Cars />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/cars/:id" element={<CarDetails />} />
 
           <Route

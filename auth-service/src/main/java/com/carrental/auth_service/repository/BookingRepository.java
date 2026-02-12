@@ -2,7 +2,6 @@ package com.carrental.auth_service.repository;
 
 import com.carrental.auth_service.entity.Booking;
 import com.carrental.auth_service.entity.BookingStatus;
-import com.carrental.auth_service.entity.Car;
 import com.carrental.auth_service.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,8 +14,6 @@ import java.util.Optional;
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     List<Booking> findByUser(User user);
-
-
 
     Optional<Booking> findByIdAndUser_Email(Long id, String email);
 
@@ -32,6 +29,4 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("endDate") LocalDate endDate,
             @Param("statuses") List<BookingStatus> statuses
     );
-
-    boolean existsByCarAndDateOverlap(Car car, LocalDate startDate, LocalDate endDate);
 }

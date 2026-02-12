@@ -1,20 +1,30 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import { toast } from "react-toastify";
 
 const BookCar = () => {
   const { carId } = useParams();
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const location = useLocation();
+  const { user, loading } = useAuth();
 
   const [car, setCar] = useState(null);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [bookingLoading, setBookingLoading] = useState(false);
 
-  // 🔹 Fetch car details
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/login", {
+        state: { from: location.pathname },
+        replace: true,
+      });
+    }
+  }, [loading, user, navigate, location]);
+
   useEffect(() => {
     if (!carId) {
       setError("Invalid car selected");
@@ -23,7 +33,7 @@ const BookCar = () => {
 
     const fetchCar = async () => {
       try {
-        const res = await api.get(`/api/cars/${carId}`);
+        const res = await api.get(`/cars/${carId}`);
         setCar(res.data);
       } catch (err) {
         console.error(err);
@@ -35,27 +45,22 @@ const BookCar = () => {
   }, [carId]);
 
   const handleBooking = async () => {
-    if (!isAuthenticated) {
-      navigate("/login");
-      return;
-    }
-
     if (!startDate || !endDate) {
       setError("Please select start and end dates");
       return;
     }
 
     try {
-      setLoading(true);
+      setBookingLoading(true);
       setError("");
 
-      await api.post("/api/bookings", {
+      await api.post("/bookings", {
         carId: Number(carId),
         startDate,
         endDate,
       });
 
-      alert("Booking confirmed 🚗");
+      toast.success("Booking request submitted 🚗");
       navigate("/my-bookings");
     } catch (err) {
       console.error(err);
@@ -66,10 +71,13 @@ const BookCar = () => {
         "Car already booked for selected dates";
 
       setError(message);
+      toast.error(message);
     } finally {
-      setLoading(false);
+      setBookingLoading(false);
     }
   };
+
+  if (loading) return null;
 
   return (
     <div className="p-6 max-w-md mx-auto bg-gray-800 rounded-xl shadow">
@@ -79,7 +87,6 @@ const BookCar = () => {
         <p className="mb-3 text-red-400 bg-red-900/30 p-2 rounded">{error}</p>
       )}
 
-      {/* 🔹 Car Info */}
       {car ? (
         <div className="mb-4 bg-gray-900 p-3 rounded">
           <p className="text-lg font-semibold text-white">
@@ -108,10 +115,10 @@ const BookCar = () => {
 
       <button
         onClick={handleBooking}
-        disabled={loading || !car}
+        disabled={bookingLoading || !car}
         className="bg-cyan-600 hover:bg-cyan-500 disabled:bg-gray-600 text-white px-4 py-2 w-full rounded font-semibold"
       >
-        {loading ? "Booking..." : "Book Now"}
+        {bookingLoading ? "Booking..." : "Book Now"}
       </button>
     </div>
   );

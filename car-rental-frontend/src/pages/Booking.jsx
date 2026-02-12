@@ -5,36 +5,36 @@ import { createBooking } from "../services/bookingService";
 import { useAuth } from "../context/AuthContext";
 
 export default function Booking() {
-  const { carId } = useParams(); // ✅ FIXED
+  const { carId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
   const [car, setCar] = useState(null);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [pageLoading, setPageLoading] = useState(true);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // 🔐 Redirect if not logged in
   useEffect(() => {
-    if (user === null) {
-      navigate("/login", { state: { from: `/book/${carId}` } });
+    if (!loading && !user) {
+      navigate("/login", {
+        state: { from: `/booking/${carId}` },
+      });
     }
-  }, [user, navigate, carId]);
+  }, [user, loading, navigate, carId]);
 
-  // 🚗 Fetch car details
   useEffect(() => {
     if (!carId) {
       setError("Invalid car selected");
-      setLoading(false);
+      setPageLoading(false);
       return;
     }
 
     getCarById(carId)
       .then((res) => setCar(res))
       .catch(() => setError("Car not found"))
-      .finally(() => setLoading(false));
+      .finally(() => setPageLoading(false));
   }, [carId]);
 
   const calculateDays = () => {
@@ -45,8 +45,7 @@ export default function Booking() {
 
     if (end < start) return 0;
 
-    const diff = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
-
+    const diff = (end - start) / (1000 * 60 * 60 * 24);
     return Math.floor(diff) + 1;
   };
 
@@ -60,9 +59,10 @@ export default function Booking() {
       setBookingLoading(true);
       setError("");
 
+      const finalCarId = car.id ?? car._id;
+
       await createBooking({
-        carId: Number(car.id),
-        name: car.brand,
+        carId: Number(finalCarId),
         startDate,
         endDate,
       });
@@ -83,25 +83,28 @@ export default function Booking() {
     }
   };
 
-  if (loading) {
-    return (
-      <p className="text-center py-20 text-gray-400">Loading car details...</p>
-    );
+  if (loading || pageLoading) {
+    return <p className="text-center py-20 text-gray-400">Loading...</p>;
   }
 
   if (error && !car) {
     return <p className="text-center py-20 text-red-400">{error}</p>;
   }
 
+  const safeCarId = car?.id ?? car?._id;
+
   return (
     <section className="max-w-4xl mx-auto px-4 py-10">
       <div className="mb-8">
-        <Link to={`/cars/${car.id}`} className="text-cyan-400 hover:underline">
+        <Link
+          to={`/cars/${safeCarId}`}
+          className="text-cyan-400 hover:underline"
+        >
           ← Back to Car
         </Link>
 
         <h1 className="mt-4 text-3xl sm:text-4xl font-bold text-cyan-400">
-          {car ? `Book ${car.brand} ${car.model}` : "Loading car details..."}
+          Book {car.brand} {car.model}
         </h1>
 
         <p className="text-gray-400 mt-2">
@@ -123,7 +126,7 @@ export default function Booking() {
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full rounded-lg bg-gray-800 border border-gray-700 px-4 py-3 focus:outline-none focus:border-cyan-500"
+              className="w-full rounded-lg bg-gray-800 border border-gray-700 px-4 py-3"
             />
           </div>
 
@@ -135,7 +138,7 @@ export default function Booking() {
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-full rounded-lg bg-gray-800 border border-gray-700 px-4 py-3 focus:outline-none focus:border-cyan-500"
+              className="w-full rounded-lg bg-gray-800 border border-gray-700 px-4 py-3"
             />
           </div>
         </div>
@@ -162,7 +165,7 @@ export default function Booking() {
         <button
           disabled={!days || bookingLoading}
           onClick={handleBooking}
-          className="w-full py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:bg-gray-700 disabled:cursor-not-allowed font-semibold text-lg transition"
+          className="w-full py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:bg-gray-700 font-semibold text-lg"
         >
           {bookingLoading ? "Booking..." : "Confirm Booking"}
         </button>

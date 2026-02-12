@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
@@ -29,61 +30,58 @@ public class BookingController {
     ) {
 
         if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("Unauthorized");
         }
 
-        User user = userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() ->
-                        new RuntimeException("User not found")
-                );
+        LocalDate startDate = request.getStartDate();
+        LocalDate endDate = request.getEndDate();
 
-        Car car = carRepository.findById(request.getCarId())
-                .orElseThrow(() ->
-                        new RuntimeException("Car not found")
-                );
+        if (startDate == null || endDate == null) {
+            return ResponseEntity.badRequest()
+                    .body("Start date and end date are required");
+        }
 
-        if (request.getEndDate().isBefore(request.getStartDate())) {
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
+        if (endDate.isBefore(startDate)) {
+            return ResponseEntity.badRequest()
                     .body("End date cannot be before start date");
         }
 
-        boolean isCarBooked = bookingRepository
-                .existsByCarAndDateOverlap(
-                        car,
-                        request.getStartDate(),
-                        request.getEndDate()
-                );
+        User user = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (isCarBooked) {
-            return ResponseEntity
-                    .status(HttpStatus.CONFLICT)
+        Car car = carRepository.findById(request.getCarId())
+                .orElseThrow(() -> new RuntimeException("Car not found"));
+
+        List<Booking> conflicts = bookingRepository.findConflictingBookings(
+                car.getId(),
+                startDate,
+                endDate,
+                List.of(BookingStatus.PENDING, BookingStatus.CONFIRMED)
+        );
+
+        if (!conflicts.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body("Car is already booked for the selected dates");
         }
 
-        long totalDays = ChronoUnit.DAYS.between(
-                request.getStartDate(),
-                request.getEndDate()
-        ) + 1;
-
+        // 💰 Calculate total
+        long totalDays = ChronoUnit.DAYS.between(startDate, endDate) + 1;
         double totalPrice = totalDays * car.getPricePerDay();
 
         Booking booking = Booking.builder()
                 .car(car)
                 .user(user)
-                .startDate(request.getStartDate())
-                .endDate(request.getEndDate())
+                .startDate(startDate)
+                .endDate(endDate)
                 .totalDays((int) totalDays)
                 .totalPrice(totalPrice)
-                .status(BookingStatus.CONFIRMED)
+                .status(BookingStatus.PENDING)
                 .build();
 
         Booking savedBooking = bookingRepository.save(booking);
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
+        return ResponseEntity.status(HttpStatus.CREATED)
                 .body(savedBooking);
     }
 
@@ -91,15 +89,12 @@ public class BookingController {
     public ResponseEntity<?> myBookings(Authentication authentication) {
 
         if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("Unauthorized");
         }
 
         User user = userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() ->
-                        new RuntimeException("User not found")
-                );
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         List<Booking> bookings = bookingRepository.findByUser(user);
 

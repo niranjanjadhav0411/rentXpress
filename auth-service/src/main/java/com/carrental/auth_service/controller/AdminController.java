@@ -9,8 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
-
 @RestController
 @RequestMapping("/api/admin/cars")
 @RequiredArgsConstructor
@@ -22,7 +20,7 @@ public class AdminController {
     @PostMapping
     public ResponseEntity<Car> addCar(@Valid @RequestBody Car car) {
 
-        car.setId(null); // ensure new entity
+        car.setId(null);
         car.setAvailable(true);
 
         Car savedCar = carRepository.save(car);
@@ -36,22 +34,19 @@ public class AdminController {
             @Valid @RequestBody Car carRequest
     ) {
 
-        Optional<Car> optionalCar = carRepository.findById(id);
+        return carRepository.findById(id)
+                .map(existingCar -> {
 
-        if (optionalCar.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+                    existingCar.setBrand(carRequest.getBrand());
+                    existingCar.setModel(carRequest.getModel());
+                    existingCar.setImage(carRequest.getImage()); // 🔥 Added
+                    existingCar.setPricePerDay(carRequest.getPricePerDay());
+                    existingCar.setAvailable(carRequest.isAvailable());
 
-        Car existingCar = optionalCar.get();
-
-        existingCar.setBrand(carRequest.getBrand());
-        existingCar.setModel(carRequest.getModel());
-        existingCar.setPricePerDay(carRequest.getPricePerDay());
-        existingCar.setAvailable(carRequest.isAvailable());
-
-        Car updatedCar = carRepository.save(existingCar);
-
-        return ResponseEntity.ok(updatedCar);
+                    Car updatedCar = carRepository.save(existingCar);
+                    return ResponseEntity.ok(updatedCar);
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")

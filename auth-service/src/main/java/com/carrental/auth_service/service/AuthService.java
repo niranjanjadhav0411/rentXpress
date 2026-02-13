@@ -41,20 +41,23 @@ public class AuthService {
         user.setName(request.getName());
         user.setEmail(request.getEmail().toLowerCase());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(Role.ROLE_USER);
+        user.setRole(Role.USER);
 
         userRepository.save(user);
 
-        // Auto-generate JWT for new user
         UserDetails userDetails = org.springframework.security.core.userdetails.User
                 .withUsername(user.getEmail())
                 .password(user.getPassword())
-                .authorities(user.getRole().name())
+                .authorities("ROLE_" + user.getRole().name()) // Add ROLE_ prefix for Spring Security
                 .build();
 
         String token = jwtService.generateToken(userDetails);
 
-        return new AuthResponse(token, user.getEmail(), user.getRole().name());
+        return new AuthResponse(
+                token,
+                user.getEmail(),
+                user.getRole().name()
+        );
     }
 
     // ================= LOGIN =================
@@ -74,26 +77,29 @@ public class AuthService {
         UserDetails userDetails = org.springframework.security.core.userdetails.User
                 .withUsername(user.getEmail())
                 .password(user.getPassword())
-                .authorities(user.getRole().name())
+                .authorities("ROLE_" + user.getRole().name())
                 .build();
 
         String token = jwtService.generateToken(userDetails);
 
-        return new AuthResponse(token, user.getEmail(), user.getRole().name());
+        return new AuthResponse(
+                token,
+                user.getEmail(),
+                user.getRole().name()
+        );
     }
 
     // ================= CREATE DEFAULT ADMIN =================
     public void createAdminIfNotExists() {
 
-        Optional<User> adminOpt =
-                userRepository.findByEmail("admin@carrental.com");
+        Optional<User> adminOpt = userRepository.findByEmail("admin@carrental.com");
 
         if (adminOpt.isEmpty()) {
             User admin = new User();
             admin.setName("Admin");
             admin.setEmail("admin@carrental.com");
             admin.setPassword(passwordEncoder.encode("admin123"));
-            admin.setRole(Role.ROLE_ADMIN);
+            admin.setRole(Role.ADMIN);
 
             userRepository.save(admin);
         }

@@ -13,6 +13,11 @@ public class AdminInitializer {
 
     @PostConstruct
     public void init() {
-        authService.createAdminIfNotExists();
+        try {
+            authService.createAdminIfNotExists();
+        } catch (Exception e) {
+            System.err.println("Failed to create default admin: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

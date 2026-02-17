@@ -1,9 +1,10 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { isAuthenticated, logout } from "../services/authService";
+import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
 
 export default function Navbar() {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   const linkBase =
     "px-4 py-2 rounded-lg text-sm font-medium transition hover:bg-gray-800";
@@ -22,23 +23,21 @@ export default function Navbar() {
             🚗 Car Rental Booking System
           </NavLink>
 
-          {/* Desktop Menu */}
           <nav className="hidden md:flex items-center gap-2">
             <NavLink to="/" className={linkBase}>
               Home
             </NavLink>
-
             <NavLink to="/cars" className={linkBase}>
               Cars
             </NavLink>
 
-            {isAuthenticated() && (
+            {user && (
               <NavLink to="/my-bookings" className={linkBase}>
                 My Bookings
               </NavLink>
             )}
 
-            {!isAuthenticated() ? (
+            {!user ? (
               <>
                 <NavLink to="/login" className={linkBase}>
                   Login
@@ -59,44 +58,6 @@ export default function Navbar() {
               </button>
             )}
           </nav>
-        </div>
-
-        {/* Mobile Menu */}
-        <div className="md:hidden pb-3 space-y-1">
-          <NavLink to="/" className={linkBase}>
-            Home
-          </NavLink>
-
-          <NavLink to="/cars" className={linkBase}>
-            Cars
-          </NavLink>
-
-          {isAuthenticated() && (
-            <NavLink to="/my-bookings" className={linkBase}>
-              My Bookings
-            </NavLink>
-          )}
-
-          {!isAuthenticated() ? (
-            <>
-              <NavLink to="/login" className={linkBase}>
-                Login
-              </NavLink>
-              <NavLink
-                to="/register"
-                className="block px-4 py-2 rounded-lg bg-cyan-600"
-              >
-                Register
-              </NavLink>
-            </>
-          ) : (
-            <button
-              onClick={handleLogout}
-              className="block w-full text-left px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 font-medium"
-            >
-              Logout
-            </button>
-          )}
         </div>
       </div>
     </header>

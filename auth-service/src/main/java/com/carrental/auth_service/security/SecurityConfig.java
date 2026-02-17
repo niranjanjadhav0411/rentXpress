@@ -49,6 +49,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/cars/**").permitAll()
 
                         // FIXED ADMIN ENDPOINTS
+                        .requestMatchers("/api/bookings/admin").hasRole("ADMIN")
                         .requestMatchers("/api/bookings/admin/**").hasRole("ADMIN")
 
                         // Authenticated endpoints

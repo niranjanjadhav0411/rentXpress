@@ -11,36 +11,59 @@ export default function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const from = location.state?.from || "/cars";
+  const from = location.state?.from?.pathname || "/cars";
+
+  const validateEmail = (email) => {
+    const emailRegex = /^\S+@\S+\.\S+$/;
+    return emailRegex.test(email);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    if (!validateEmail(email)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+
+    if (!password) {
+      setError("Password cannot be empty");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const res = await api.post("/auth/login", {
-        email,
-        password,
-      });
+      const res = await api.post("/auth/login", { email, password });
 
-      const accessToken = res.data.accessToken;
+      const authResponse = res.data;
 
-      if (!accessToken) {
-        throw new Error("JWT not returned from server");
+      if (!authResponse?.accessToken) {
+        throw new Error("Access token not returned from server");
       }
 
-      login({ email }, accessToken);
+      login(authResponse);
 
       toast.success("Login successful 🚗");
-      navigate(from, { replace: true });
+
+      if (authResponse.role === "ADMIN") {
+        navigate("/admin", { replace: true });
+      } else {
+        navigate("/cars", { replace: true });
+      }
     } catch (err) {
       console.error("Login failed:", err);
 
-      const msg = err.response?.data?.message || err.message || "Login failed";
+      const msg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        "Login failed";
 
       setError(msg);
       toast.error(msg);
@@ -57,7 +80,10 @@ export default function Login() {
         </h2>
 
         {error && (
-          <div className="mb-4 text-sm text-red-400 bg-red-900/30 px-4 py-2 rounded-lg">
+          <div
+            className="mb-4 text-sm text-red-400 bg-red-900/30 px-4 py-2 rounded-lg"
+            role="alert"
+          >
             {error}
           </div>
         )}
@@ -68,23 +94,36 @@ export default function Login() {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg bg-gray-900 border border-gray-700"
+            className="w-full px-4 py-3 rounded-lg bg-gray-900 border border-gray-700 focus:outline-none focus:border-cyan-400"
             required
+            aria-label="Email"
           />
 
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg bg-gray-900 border border-gray-700"
-            required
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-3 rounded-lg bg-gray-900 border border-gray-700 focus:outline-none focus:border-cyan-400"
+              required
+              aria-label="Password"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-cyan-400 text-sm"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? "Hide" : "Show"}
+            </button>
+          </div>
 
           <button
             type="submit"
             disabled={loading}
             className="w-full py-3 rounded-lg bg-cyan-600 hover:bg-cyan-500 disabled:bg-gray-600 font-semibold"
+            aria-busy={loading}
           >
             {loading ? "Logging in..." : "Login"}
           </button>

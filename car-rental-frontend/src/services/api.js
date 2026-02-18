@@ -9,19 +9,19 @@ const api = axios.create({
 });
 
 // Request interceptor to attach JWT token
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+api.interceptors.request.use((config) => {
+  const storedUser = localStorage.getItem("user");
+
+  if (storedUser) {
+    const parsedUser = JSON.parse(storedUser);
+
+    if (parsedUser?.accessToken) {
+      config.headers.Authorization = `Bearer ${parsedUser.accessToken}`;
     }
-    return config;
-  },
-  (error) => {
-    console.error("Request error:", error);
-    return Promise.reject(error);
   }
-);
+
+  return config;
+});
 
 // Response interceptor (optional, for logging or global error handling)
 api.interceptors.response.use(
@@ -29,7 +29,7 @@ api.interceptors.response.use(
   (error) => {
     console.error("API response error:", error.response?.data || error.message);
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

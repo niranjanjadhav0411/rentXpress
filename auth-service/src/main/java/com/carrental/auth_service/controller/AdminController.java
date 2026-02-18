@@ -41,7 +41,7 @@ public class AdminController {
                     existingCar.setModel(carRequest.getModel());
                     existingCar.setImage(carRequest.getImage()); // 🔥 Added
                     existingCar.setPricePerDay(carRequest.getPricePerDay());
-                    existingCar.setAvailable(carRequest.isAvailable());
+                    existingCar.setAvailable(carRequest.getAvailable());
 
                     Car updatedCar = carRepository.save(existingCar);
                     return ResponseEntity.ok(updatedCar);

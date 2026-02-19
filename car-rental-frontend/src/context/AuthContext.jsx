@@ -36,10 +36,9 @@ export const AuthProvider = ({ children }) => {
 
   // Login
   const login = (authResponse) => {
-    // authResponse.role now comes from backend: "ADMIN" or "USER"
     const authUser = {
       email: authResponse.email,
-      role: authResponse.role || "USER",
+      role: authResponse.role,
       accessToken: authResponse.accessToken,
     };
 

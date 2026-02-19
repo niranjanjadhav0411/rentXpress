@@ -5,13 +5,12 @@ export const createBooking = async (bookingData) => {
     const res = await api.post("/bookings", bookingData);
     return res.data;
   } catch (error) {
-    console.error(
-      "Error creating booking:",
-      error.response?.data || error.message,
-    );
-    throw new Error(
-      error.response?.data?.message || "Failed to create booking",
-    );
+    const backendMessage =
+      typeof error.response?.data === "string"
+        ? error.response.data
+        : error.response?.data?.message;
+
+    throw new Error(backendMessage || "Booking failed");
   }
 };
 

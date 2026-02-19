@@ -25,13 +25,15 @@ public class Car {
     @Column(nullable = false)
     private String model;
 
-    private String image;
-
     @Column(name = "price_per_day", nullable = false)
     private double pricePerDay;
 
     @Column(nullable = false)
-    private boolean available = true;
+    private Boolean available = true;
+
+    @Lob
+    @Column(name = "image", columnDefinition = "LONGTEXT")
+    private String image;
 
     @JsonIgnore
     @OneToMany(

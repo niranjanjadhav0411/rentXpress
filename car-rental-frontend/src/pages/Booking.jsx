@@ -72,10 +72,7 @@ export default function Booking() {
       navigate("/my-bookings");
     } catch (err) {
       console.error(err);
-      const msg =
-        typeof err.response?.data === "string"
-          ? err.response.data
-          : err.response?.data?.message || "Booking failed";
+      const msg = err.message || "Booking failed";
       setError(msg);
       toast.error(msg);
     } finally {

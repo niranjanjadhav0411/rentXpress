@@ -11,4 +11,14 @@ public class BookingRequest {
     private LocalDate startDate;
 
     private LocalDate endDate;
+
+    private String name;
+    private String email;
+    private String contact;
+    private String location;
+    private String destination;
+    private String pickupAddress;
+    private Integer totalDays;
+
+
 }

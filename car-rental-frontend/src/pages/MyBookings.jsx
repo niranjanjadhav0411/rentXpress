@@ -13,7 +13,7 @@ export default function MyBookings() {
   const fetchBookings = async () => {
     try {
       const res = await api.get("/bookings/my");
-      setBookings(res.data);
+      setBookings(res.data || []);
     } catch (err) {
       toast.error("Failed to load bookings");
     } finally {
@@ -25,13 +25,28 @@ export default function MyBookings() {
     try {
       await api.put(`/bookings/${id}/cancel`);
 
-      toast.success("Booking Cancelled Successfully");
+      toast.success("Booking cancelled successfully");
 
       setBookings((prev) =>
         prev.map((b) => (b.id === id ? { ...b, status: "CANCELLED" } : b)),
       );
     } catch (err) {
       toast.error(err.response?.data || "Failed to cancel booking");
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "PENDING":
+        return "text-yellow-400";
+      case "CONFIRMED":
+        return "text-green-400";
+      case "REJECTED":
+        return "text-red-400";
+      case "CANCELLED":
+        return "text-gray-400";
+      default:
+        return "text-gray-300";
     }
   };
 
@@ -51,37 +66,42 @@ export default function MyBookings() {
 
   return (
     <section className="max-w-4xl mx-auto px-4 py-10">
-      <h1 className="text-3xl font-bold text-cyan-400 mb-6">My Bookings</h1>
+      <h1 className="text-3xl font-bold text-cyan-400 mb-8">My Bookings</h1>
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         {bookings.map((b) => (
           <div
             key={b.id}
-            className="bg-gray-800 p-5 rounded-xl shadow-lg hover:shadow-xl transition"
+            className="bg-gray-800 p-6 rounded-2xl shadow-md hover:shadow-xl transition duration-300 border border-gray-700"
           >
+            {/* Car Name */}
             <h3 className="text-xl font-semibold text-white">
               {b.car?.brand} {b.car?.model}
             </h3>
 
-            <p className="text-gray-300 mt-2">
+            {/* Dates */}
+            <p className="text-gray-400 mt-2 text-sm">
               {b.startDate} → {b.endDate}
             </p>
 
-            <p className="text-yellow-400 font-medium mt-1">₹{b.totalPrice}</p>
+            {/* Price */}
+            <p className="text-yellow-400 font-semibold mt-2">
+              ₹{b.totalPrice}
+            </p>
 
-            <div className="flex justify-between items-center mt-3">
+            {/* Status + Action */}
+            <div className="flex justify-between items-center mt-4">
               <span
-                className={`font-semibold ${
-                  b.status === "CANCELLED" ? "text-red-400" : "text-green-400"
-                }`}
+                className={`font-semibold text-sm ${getStatusColor(b.status)}`}
               >
                 {b.status}
               </span>
 
-              {b.status !== "CANCELLED" && (
+              {/* ✅ Only allow cancel if PENDING */}
+              {b.status === "PENDING" && (
                 <button
                   onClick={() => cancelBooking(b.id)}
-                  className="bg-red-600 hover:bg-red-700 px-4 py-1 rounded-lg text-sm transition"
+                  className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm font-medium transition"
                 >
                   Cancel Booking
                 </button>

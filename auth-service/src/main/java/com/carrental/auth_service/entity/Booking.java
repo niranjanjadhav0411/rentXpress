@@ -49,6 +49,15 @@ public class Booking {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    private String name;
+    private String email;
+    private String contact;
+    private String location;
+    private String destination;
+    private String pickupAddress;
+
+
+
     @PrePersist
     public void onCreate() {
         if (this.createdAt == null) {
@@ -58,4 +67,5 @@ public class Booking {
             this.status = BookingStatus.PENDING;
         }
     }
+
 }

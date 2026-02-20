@@ -11,27 +11,28 @@ export default function Booking() {
   const { user, loading } = useAuth();
 
   const [car, setCar] = useState(null);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [form, setForm] = useState({
+    startDate: "",
+    endDate: "",
+    name: "",
+    email: "",
+    contact: "",
+    location: "",
+    destination: "",
+    pickupAddress: "",
+  });
+
   const [pageLoading, setPageLoading] = useState(true);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
     if (!loading && !user) {
-      navigate("/login", {
-        state: { from: `/booking/${carId}` },
-      });
+      navigate("/login", { state: { from: `/booking/${carId}` } });
     }
   }, [user, loading, navigate, carId]);
 
   useEffect(() => {
-    if (!carId) {
-      setError("Invalid car selected");
-      setPageLoading(false);
-      return;
-    }
-
     getCarById(carId)
       .then((res) => setCar(res))
       .catch(() => setError("Car not found"))
@@ -39,20 +40,29 @@ export default function Booking() {
   }, [carId]);
 
   const calculateDays = () => {
-    if (!startDate || !endDate) return 0;
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    if (!form.startDate || !form.endDate) return 0;
+    const start = new Date(form.startDate);
+    const end = new Date(form.endDate);
     if (end < start) return 0;
-    const diff = (end - start) / (1000 * 60 * 60 * 24);
-    return Math.floor(diff) + 1;
+    return Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
   };
 
   const days = calculateDays();
   const totalPrice = car ? days * car.pricePerDay : 0;
+  const today = new Date().toISOString().split("T")[0];
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
   const handleBooking = async () => {
-    if (!days || !car) {
-      setError("Please select valid dates");
+    if (!days) {
+      setError("Select valid rental dates");
+      return;
+    }
+
+    if (!form.name || !form.contact || !form.location) {
+      setError("Please fill all required fields");
       return;
     }
 
@@ -60,116 +70,155 @@ export default function Booking() {
       setBookingLoading(true);
       setError("");
 
-      const finalCarId = car.id ?? car._id;
-
       await createBooking({
-        carId: Number(finalCarId),
-        startDate,
-        endDate,
+        carId: Number(car.id),
+        startDate: form.startDate,
+        endDate: form.endDate,
+        name: form.name,
+        email: form.email,
+        contact: form.contact,
+        location: form.location,
+        destination: form.destination,
+        pickupAddress: form.pickupAddress,
+        totalDays: days,
       });
 
-      toast.success("Booking confirmed 🚗");
+      toast.success("Enquiry submitted 🚗 Admin will verify soon.");
       navigate("/my-bookings");
     } catch (err) {
-      console.error(err);
-      const msg = err.message || "Booking failed";
-      setError(msg);
-      toast.error(msg);
+      toast.error(err.message || "Booking failed");
     } finally {
       setBookingLoading(false);
     }
   };
 
-  if (loading || pageLoading) {
+  if (loading || pageLoading)
     return <p className="text-center py-20 text-gray-400">Loading...</p>;
-  }
-
-  if (error && !car) {
-    return <p className="text-center py-20 text-red-400">{error}</p>;
-  }
-
-  const today = new Date().toISOString().split("T")[0];
-  const safeCarId = car?.id ?? car?._id;
 
   return (
-    <section className="max-w-4xl mx-auto px-4 py-10">
-      <div className="mb-8">
-        <Link
-          to={`/cars/${safeCarId}`}
-          className="text-cyan-400 hover:underline"
-        >
-          ← Back to Car
-        </Link>
+    <section className="max-w-6xl mx-auto px-4 py-10">
+      <h1 className="text-4xl font-bold text-cyan-400 mb-8">
+        Book {car.brand} {car.model}
+      </h1>
 
-        <h1 className="mt-4 text-3xl sm:text-4xl font-bold text-cyan-400">
-          Book {car.brand} {car.model}
-        </h1>
+      <div className="grid md:grid-cols-2 gap-10">
+        {/* LEFT SIDE */}
+        <div className="bg-gray-900 p-8 rounded-2xl shadow-xl space-y-6">
+          <h2 className="text-xl font-semibold text-white">Rental Details</h2>
 
-        <p className="text-gray-400 mt-2">
-          Select rental dates to see the total price
-        </p>
-      </div>
-
-      <div className="bg-gray-900 rounded-2xl shadow-xl p-6 sm:p-8 space-y-6">
-        {error && (
-          <div className="text-red-400 bg-red-900/30 p-3 rounded">{error}</div>
-        )}
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm text-gray-400 mb-1">
-              Pickup Date
-            </label>
+          <div className="grid sm:grid-cols-2 gap-5">
             <input
               type="date"
-              value={startDate}
+              name="startDate"
               min={today}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="w-full rounded-lg bg-gray-800 border border-gray-700 px-4 py-3"
+              value={form.startDate}
+              onChange={handleChange}
+              className="input-style"
             />
-          </div>
 
-          <div>
-            <label className="block text-sm text-gray-400 mb-1">
-              Drop Date
-            </label>
             <input
               type="date"
-              value={endDate}
-              min={startDate || today}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="w-full rounded-lg bg-gray-800 border border-gray-700 px-4 py-3"
+              name="endDate"
+              min={form.startDate || today}
+              value={form.endDate}
+              onChange={handleChange}
+              className="input-style"
             />
           </div>
-        </div>
 
-        <div className="bg-gray-800 rounded-xl p-5 space-y-3">
-          <div className="flex justify-between">
-            <span className="text-gray-400">Price per day</span>
-            <span className="font-semibold">₹{car.pricePerDay}</span>
-          </div>
+          <div className="bg-gray-800 p-5 rounded-xl">
+            <div className="flex justify-between text-gray-400">
+              <span>Price / Day</span>
+              <span>₹{car.pricePerDay}</span>
+            </div>
 
-          <div className="flex justify-between">
-            <span className="text-gray-400">Total days</span>
-            <span className="font-semibold">{days}</span>
-          </div>
+            <div className="flex justify-between mt-2 text-gray-400">
+              <span>Total Days</span>
+              <span>{days}</span>
+            </div>
 
-          <div className="border-t border-gray-700 pt-3 flex justify-between">
-            <span className="text-lg font-semibold">Total Price</span>
-            <span className="text-lg font-bold text-cyan-400">
-              ₹{totalPrice}
-            </span>
+            <div className="flex justify-between mt-4 text-lg font-bold text-cyan-400">
+              <span>Total Price</span>
+              <span>₹{totalPrice}</span>
+            </div>
           </div>
         </div>
 
-        <button
-          disabled={!days || bookingLoading}
-          onClick={handleBooking}
-          className="w-full py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:bg-gray-700 font-semibold text-lg"
-        >
-          {bookingLoading ? "Booking..." : "Confirm Booking"}
-        </button>
+        {/* RIGHT SIDE */}
+        <div className="bg-gray-900 p-8 rounded-2xl shadow-xl space-y-5">
+          <h2 className="text-xl font-semibold text-white">
+            Enquiry Information
+          </h2>
+
+          <input
+            type="text"
+            name="name"
+            placeholder="Full Name"
+            onChange={handleChange}
+            className="input-style"
+          />
+
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            onChange={handleChange}
+            className="input-style"
+          />
+
+          <input
+            type="text"
+            name="contact"
+            placeholder="Contact Number"
+            onChange={handleChange}
+            className="input-style"
+          />
+
+          <input
+            type="text"
+            name="location"
+            placeholder="Pickup Location"
+            onChange={handleChange}
+            className="input-style"
+          />
+
+          <input
+            type="text"
+            name="destination"
+            placeholder="Destination"
+            onChange={handleChange}
+            className="input-style"
+          />
+
+          <textarea
+            name="pickupAddress"
+            placeholder="Pickup Address"
+            onChange={handleChange}
+            className="input-style"
+          />
+
+          {error && <div className="text-red-400 text-sm">{error}</div>}
+
+          <button
+            onClick={handleBooking}
+            disabled={bookingLoading}
+            className="w-full py-3 bg-cyan-600 hover:bg-cyan-500 rounded-xl font-semibold text-lg transition"
+          >
+            {bookingLoading ? "Submitting..." : "Submit Enquiry"}
+          </button>
+        </div>
       </div>
+
+      <style>{`
+        .input-style {
+          width: 100%;
+          padding: 12px 14px;
+          background: #1f2937;
+          border-radius: 10px;
+          border: 1px solid #374151;
+          color: white;
+        }
+      `}</style>
     </section>
   );
 }

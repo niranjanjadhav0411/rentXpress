@@ -49,11 +49,21 @@ public class Booking {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(nullable = false)
     private String name;
+
+    @Column(nullable = false)
     private String email;
+
+    @Column(nullable = false)
     private String contact;
+
+    @Column(nullable = false)
     private String location;
+
     private String destination;
+
+    @Column(columnDefinition = "TEXT")
     private String pickupAddress;
 
 

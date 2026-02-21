@@ -28,7 +28,7 @@ export default function Navbar() {
             to="/"
             className="text-2xl font-bold text-cyan-400 flex items-center gap-2"
           >
-            🚗 RentXpress
+            RentXpress
           </NavLink>
 
           {/* Desktop Menu */}

@@ -13,7 +13,11 @@ export default function MyBookings() {
   const fetchBookings = async () => {
     try {
       const res = await api.get("/bookings/my");
-      setBookings(res.data || []);
+
+      // ✅ Sort newest first
+      const sorted = (res.data || []).sort((a, b) => b.id - a.id);
+
+      setBookings(sorted);
     } catch (err) {
       toast.error("Failed to load bookings");
     } finally {
@@ -38,15 +42,15 @@ export default function MyBookings() {
   const getStatusColor = (status) => {
     switch (status) {
       case "PENDING":
-        return "text-yellow-400";
+        return "bg-yellow-500/20 text-yellow-400";
       case "CONFIRMED":
-        return "text-green-400";
+        return "bg-green-500/20 text-green-400";
       case "REJECTED":
-        return "text-red-400";
+        return "bg-red-500/20 text-red-400";
       case "CANCELLED":
-        return "text-gray-400";
+        return "bg-gray-500/20 text-gray-400";
       default:
-        return "text-gray-300";
+        return "bg-gray-500/20 text-gray-300";
     }
   };
 
@@ -58,55 +62,71 @@ export default function MyBookings() {
 
   if (bookings.length === 0) {
     return (
-      <p className="text-center py-20 text-gray-400">
-        You have no bookings yet.
-      </p>
+      <div className="text-center py-20 text-gray-400">
+        <p className="text-xl">No bookings yet 🚗</p>
+        <p className="text-sm mt-2">Start by exploring available cars.</p>
+      </div>
     );
   }
 
   return (
-    <section className="max-w-4xl mx-auto px-4 py-10">
+    <section className="max-w-5xl mx-auto px-4 py-10">
       <h1 className="text-3xl font-bold text-cyan-400 mb-8">My Bookings</h1>
 
       <div className="space-y-6">
         {bookings.map((b) => (
           <div
             key={b.id}
-            className="bg-gray-800 p-6 rounded-2xl shadow-md hover:shadow-xl transition duration-300 border border-gray-700"
+            className="bg-gray-900 p-6 rounded-2xl shadow-lg border border-gray-800 hover:border-cyan-500/40 transition duration-300"
           >
-            {/* Car Name */}
-            <h3 className="text-xl font-semibold text-white">
-              {b.car?.brand} {b.car?.model}
-            </h3>
+            {/* Header */}
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="text-xl font-semibold text-white">
+                  {b.car?.brand} {b.car?.model}
+                </h3>
 
-            {/* Dates */}
-            <p className="text-gray-400 mt-2 text-sm">
-              {b.startDate} → {b.endDate}
-            </p>
+                <p className="text-gray-400 text-sm mt-1">
+                  {b.startDate} → {b.endDate}
+                </p>
+              </div>
 
-            {/* Price */}
-            <p className="text-yellow-400 font-semibold mt-2">
-              ₹{b.totalPrice}
-            </p>
-
-            {/* Status + Action */}
-            <div className="flex justify-between items-center mt-4">
               <span
-                className={`font-semibold text-sm ${getStatusColor(b.status)}`}
+                className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                  b.status,
+                )}`}
               >
                 {b.status}
               </span>
+            </div>
 
-              {/* ✅ Only allow cancel if PENDING */}
+            {/* Price */}
+            <div className="mt-4 flex justify-between items-center">
+              <div>
+                <p className="text-gray-400 text-sm">Total Price</p>
+                <p className="text-yellow-400 font-bold text-lg">
+                  ₹{b.totalPrice}
+                </p>
+              </div>
+
+              {/* Only Pending can cancel */}
               {b.status === "PENDING" && (
                 <button
                   onClick={() => cancelBooking(b.id)}
                   className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm font-medium transition"
                 >
-                  Cancel Booking
+                  Cancel
                 </button>
               )}
             </div>
+
+            {/* Optional Enquiry Details (if exists) */}
+            {(b.location || b.destination) && (
+              <div className="mt-4 text-sm text-gray-400 border-t border-gray-800 pt-4">
+                {b.location && <p>Pickup: {b.location}</p>}
+                {b.destination && <p>Destination: {b.destination}</p>}
+              </div>
+            )}
           </div>
         ))}
       </div>

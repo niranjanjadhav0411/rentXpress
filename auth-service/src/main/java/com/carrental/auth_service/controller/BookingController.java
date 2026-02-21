@@ -80,6 +80,13 @@ public class BookingController {
                 .totalDays((int) totalDays)
                 .totalPrice(totalPrice)
                 .status(BookingStatus.PENDING)
+
+                .name(request.getName())
+                .email(request.getEmail())
+                .contact(request.getContact())
+                .location(request.getLocation())
+                .destination(request.getDestination())
+                .pickupAddress(request.getPickupAddress())
                 .build();
 
         return ResponseEntity.status(HttpStatus.CREATED)

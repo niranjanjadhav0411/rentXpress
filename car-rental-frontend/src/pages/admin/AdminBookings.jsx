@@ -6,23 +6,15 @@ import {
 } from "../../services/adminBookingService";
 import { toast } from "react-toastify";
 
-function AdminBookings() {
+export default function AdminBookings() {
   const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const [page, setPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-
-  const fetchBookings = async (currentPage = 0) => {
-    setLoading(true);
+  const fetchBookings = async () => {
     try {
-      const data = await getAllBookings("", currentPage, 5);
-
-      setBookings(data.content || []);
-      setTotalPages(data.totalPages || 0);
-      setPage(currentPage);
+      const res = await getAllBookings("", 0, 50);
+      setBookings(res.content || []);
     } catch (err) {
-      console.error(err);
       toast.error("Failed to load bookings");
     } finally {
       setLoading(false);
@@ -30,127 +22,122 @@ function AdminBookings() {
   };
 
   useEffect(() => {
-    fetchBookings(0);
+    fetchBookings();
   }, []);
 
   const handleApprove = async (id) => {
     try {
       await approveBooking(id);
-      toast.success("Booking Approved");
-      fetchBookings(page);
-    } catch (err) {
-      console.error(err);
+      toast.success("Booking Approved ✅");
+      fetchBookings();
+    } catch {
       toast.error("Approval failed");
     }
   };
 
   const handleReject = async (id) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to reject this booking?",
-    );
-    if (!confirmed) return;
-
     try {
       await rejectBooking(id);
-      toast.info("Booking Rejected");
-      fetchBookings(page);
-    } catch (err) {
-      console.error(err);
+      toast.success("Booking Rejected ❌");
+      fetchBookings();
+    } catch {
       toast.error("Rejection failed");
     }
   };
 
-  const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString();
+  if (loading)
+    return <p className="text-center py-20 text-gray-400">Loading...</p>;
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4 text-cyan-400">
-        Admin - All Bookings
-      </h2>
+    <div className="p-8 space-y-6">
+      <h1 className="text-3xl font-bold text-cyan-400">Booking Enquiries</h1>
 
-      {loading && <p>Loading bookings...</p>}
-      {!loading && bookings.length === 0 && <p>No bookings found</p>}
+      {bookings.length === 0 && (
+        <p className="text-gray-400">No enquiries found.</p>
+      )}
 
-      <div className="space-y-4">
-        {bookings.map((booking) => (
-          <div
-            key={booking.id}
-            className="border border-gray-700 rounded-lg p-4 bg-gray-800 text-gray-200"
-          >
-            <p>
-              <b>Car:</b> {booking.carName}
-            </p>
-            <p>
-              <b>From:</b> {formatDate(booking.startDate)}
-            </p>
-            <p>
-              <b>To:</b> {formatDate(booking.endDate)}
-            </p>
-            <p>
-              <b>Total:</b> ₹{booking.totalPrice}
-            </p>
-            <p>
-              <b>Status:</b>{" "}
-              <span
-                className={`font-semibold ${
-                  booking.status === "PENDING"
-                    ? "text-yellow-400"
-                    : booking.status === "CONFIRMED"
-                      ? "text-green-400"
-                      : "text-red-400"
-                }`}
-              >
-                {booking.status}
-              </span>
-            </p>
+      {bookings.map((b) => (
+        <div
+          key={b.id}
+          className="bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-xl"
+        >
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* LEFT SIDE */}
+            <div>
+              <h2 className="text-xl font-semibold text-white mb-3">
+                {b.car?.brand} {b.car?.model}
+              </h2>
 
-            {booking.status === "PENDING" && (
-              <div className="mt-2 flex gap-2">
+              <p className="text-gray-400">
+                📅 {b.startDate} → {b.endDate}
+              </p>
+
+              <p className="text-gray-400 mt-1">🕒 {b.totalDays} Days</p>
+
+              <p className="text-cyan-400 font-bold mt-3 text-lg">
+                ₹{b.totalPrice}
+              </p>
+            </div>
+
+            {/* RIGHT SIDE - ENQUIRY DETAILS */}
+            <div className="space-y-2 text-gray-300 text-sm">
+              <p>
+                <span className="text-gray-500">Name:</span> {b.name}
+              </p>
+              <p>
+                <span className="text-gray-500">Email:</span> {b.email}
+              </p>
+              <p>
+                <span className="text-gray-500">Contact:</span> {b.contact}
+              </p>
+              <p>
+                <span className="text-gray-500">Pickup:</span> {b.location}
+              </p>
+              <p>
+                <span className="text-gray-500">Destination:</span>{" "}
+                {b.destination}
+              </p>
+              <p>
+                <span className="text-gray-500">Address:</span>{" "}
+                {b.pickupAddress}
+              </p>
+            </div>
+          </div>
+
+          {/* STATUS + ACTIONS */}
+          <div className="mt-6 flex justify-between items-center">
+            <span
+              className={`font-semibold ${
+                b.status === "PENDING"
+                  ? "text-yellow-400"
+                  : b.status === "CONFIRMED"
+                    ? "text-green-400"
+                    : "text-red-400"
+              }`}
+            >
+              {b.status}
+            </span>
+
+            {b.status === "PENDING" && (
+              <div className="flex gap-3">
                 <button
-                  onClick={() => handleApprove(booking.id)}
-                  className="px-4 py-2 bg-green-600 hover:bg-green-500 rounded text-white font-semibold"
+                  onClick={() => handleApprove(b.id)}
+                  className="px-5 py-2 bg-green-600 hover:bg-green-500 rounded-lg"
                 >
                   Approve
                 </button>
 
                 <button
-                  onClick={() => handleReject(booking.id)}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-500 rounded text-white font-semibold"
+                  onClick={() => handleReject(b.id)}
+                  className="px-5 py-2 bg-red-600 hover:bg-red-500 rounded-lg"
                 >
                   Reject
                 </button>
               </div>
             )}
           </div>
-        ))}
-      </div>
-
-      {/* ✅ Pagination Controls */}
-      {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-4 mt-6">
-          <button
-            disabled={page === 0}
-            onClick={() => fetchBookings(page - 1)}
-            className="px-4 py-2 bg-gray-700 rounded disabled:opacity-50"
-          >
-            Previous
-          </button>
-
-          <span className="px-4 py-2">
-            Page {page + 1} of {totalPages}
-          </span>
-
-          <button
-            disabled={page + 1 >= totalPages}
-            onClick={() => fetchBookings(page + 1)}
-            className="px-4 py-2 bg-gray-700 rounded disabled:opacity-50"
-          >
-            Next
-          </button>
         </div>
-      )}
+      ))}
     </div>
   );
 }
-
-export default AdminBookings;

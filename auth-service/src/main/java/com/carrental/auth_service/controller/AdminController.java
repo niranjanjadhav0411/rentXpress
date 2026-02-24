@@ -11,13 +11,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/bookings")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
-public class AdminBookingController {
+public class AdminController {
 
     private final BookingService bookingService;
     private final BookingRepository bookingRepository;
@@ -102,4 +104,44 @@ public class AdminBookingController {
                 booking.getStatus().name()
         );
     }
+
+    // Dashboard Analytics
+    @GetMapping("/admin/dashboard")
+    public ResponseEntity<?> getDashboardStats(
+            @RequestParam(required = false) LocalDate start,
+            @RequestParam(required = false) LocalDate end
+    ) {
+
+        List<Booking> bookings = bookingRepository.findAll();
+
+        if (start != null && end != null) {
+            bookings = bookings.stream()
+                    .filter(b -> !b.getStartDate().isBefore(start)
+                            && !b.getEndDate().isAfter(end))
+                    .toList();
+        }
+
+        long total = bookings.size();
+
+        long pending = bookings.stream()
+                .filter(b -> b.getStatus() == BookingStatus.PENDING)
+                .count();
+
+        long confirmed = bookings.stream()
+                .filter(b -> b.getStatus() == BookingStatus.CONFIRMED)
+                .count();
+
+        double revenue = bookings.stream()
+                .filter(b -> b.getStatus() == BookingStatus.CONFIRMED)
+                .mapToDouble(Booking::getTotalPrice)
+                .sum();
+
+        return ResponseEntity.ok(Map.of(
+                "total", total,
+                "pending", pending,
+                "confirmed", confirmed,
+                "revenue", revenue
+        ));
+    }
+
 }

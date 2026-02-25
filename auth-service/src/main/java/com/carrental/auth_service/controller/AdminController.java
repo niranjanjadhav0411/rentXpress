@@ -105,43 +105,4 @@ public class AdminController {
         );
     }
 
-    // Dashboard Analytics
-    @GetMapping("/admin/dashboard")
-    public ResponseEntity<?> getDashboardStats(
-            @RequestParam(required = false) LocalDate start,
-            @RequestParam(required = false) LocalDate end
-    ) {
-
-        List<Booking> bookings = bookingRepository.findAll();
-
-        if (start != null && end != null) {
-            bookings = bookings.stream()
-                    .filter(b -> !b.getStartDate().isBefore(start)
-                            && !b.getEndDate().isAfter(end))
-                    .toList();
-        }
-
-        long total = bookings.size();
-
-        long pending = bookings.stream()
-                .filter(b -> b.getStatus() == BookingStatus.PENDING)
-                .count();
-
-        long confirmed = bookings.stream()
-                .filter(b -> b.getStatus() == BookingStatus.CONFIRMED)
-                .count();
-
-        double revenue = bookings.stream()
-                .filter(b -> b.getStatus() == BookingStatus.CONFIRMED)
-                .mapToDouble(Booking::getTotalPrice)
-                .sum();
-
-        return ResponseEntity.ok(Map.of(
-                "total", total,
-                "pending", pending,
-                "confirmed", confirmed,
-                "revenue", revenue
-        ));
-    }
-
 }

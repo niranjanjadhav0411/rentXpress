@@ -34,9 +34,16 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("statuses") List<BookingStatus> statuses
     );
 
+
     // Total revenue from confirmed bookings
-    @Query("SELECT COALESCE(SUM(b.totalPrice), 0) FROM Booking b WHERE b.status = 'CONFIRMED'")
-    Double getTotalRevenue();
+    @Query("SELECT COUNT(b) FROM Booking b")
+    long countTotal();
+
+    @Query("SELECT COUNT(b) FROM Booking b WHERE b.status = 'PENDING'")
+    long countPending();
+
+    @Query("SELECT SUM(b.totalPrice) FROM Booking b WHERE b.status = 'CONFIRMED'")
+    Double totalRevenue();
 
     // Count bookings by status
     Long countByStatus(BookingStatus status);

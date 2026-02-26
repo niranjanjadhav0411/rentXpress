@@ -47,4 +47,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     // Count bookings by status
     Long countByStatus(BookingStatus status);
+
+    Double getTotalRevenue();
 }

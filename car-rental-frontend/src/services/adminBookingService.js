@@ -1,55 +1,29 @@
 import api from "./api";
 
+// Admin Stats
 export const getAdminStats = async () => {
-  try {
-    const res = await api.get("/bookings/admin/stats");
-    return res.data;
-  } catch (error) {
-    console.error(
-      "Error fetching admin stats:",
-      error.response?.data || error.message,
-    );
-    throw new Error("Failed to fetch admin statistics");
-  }
+  const res = await api.get("/bookings/admin/stats");
+  return res.data;
 };
 
-export const getAllBookings = async (status = "", page = 0, size = 5) => {
-  try {
-    const res = await api.get("/bookings/admin", {
-      params: { status, page, size },
-    });
-    return res.data;
-  } catch (error) {
-    console.error(
-      "Error fetching bookings:",
-      error.response?.data || error.message,
-    );
-    throw new Error("Failed to fetch bookings");
-  }
+// Revenue Admin
+export const getRevenueData = async () => {
+  const res = await api.get("/bookings/admin/revenue");
+  return res.data;
 };
 
+// All Bookings
+export const getAllBookings = async (search = "", page = 0, size = 50) => {
+  const res = await api.get(`/bookings/admin?page=${page}&size=${size}`);
+  return res.data;
+};
+
+// Approve Booking
 export const approveBooking = async (id) => {
-  try {
-    const res = await api.put(`/bookings/admin/${id}/approve`);
-    return res.data;
-  } catch (error) {
-    console.error(
-      "Error approving booking:",
-      error.response?.data || error.message,
-    );
-    throw new Error("Failed to approve booking");
-  }
+  return api.put(`/bookings/admin/${id}/approve`);
 };
 
+// Reject Booking
 export const rejectBooking = async (id) => {
-  try {
-    const res = await api.put(`/bookings/admin/${id}/reject`);
-    return res.data;
-  } catch (error) {
-    console.error(
-      "Error rejecting booking:",
-      error.response?.data || error.message,
-    );
-    throw new Error("Failed to reject booking");
-  }
+  return api.put(`/bookings/admin/${id}/reject`);
 };

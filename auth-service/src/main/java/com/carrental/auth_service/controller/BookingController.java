@@ -4,6 +4,7 @@ import com.carrental.auth_service.dto.BookingRequest;
 import com.carrental.auth_service.dto.Revenue;
 import com.carrental.auth_service.entity.*;
 import com.carrental.auth_service.repository.*;
+import com.carrental.auth_service.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,7 @@ public class BookingController {
 
     private final BookingRepository bookingRepository;
     private final CarRepository carRepository;
+    private final NotificationService notificationService;
 
     // ================= CREATE BOOKING =================
     @PostMapping
@@ -62,6 +64,10 @@ public class BookingController {
                 startDate,
                 endDate,
                 List.of(BookingStatus.PENDING, BookingStatus.CONFIRMED)
+        );
+
+        notificationService.notifyAdmin(
+                "New booking from " + user.getEmail()
         );
 
         if (!conflicts.isEmpty()) {
@@ -173,6 +179,11 @@ public class BookingController {
                     .body("Only pending bookings can be approved");
         }
 
+        notificationService.notifyUser(
+                booking.getUser().getEmail(),
+                "Your booking has been CONFIRMED"
+        );
+
         booking.setStatus(BookingStatus.CONFIRMED);
         bookingRepository.save(booking);
 
@@ -192,6 +203,11 @@ public class BookingController {
             return ResponseEntity.badRequest()
                     .body("Only pending bookings can be rejected");
         }
+
+        notificationService.notifyUser(
+                booking.getUser().getEmail(),
+                "Your booking was REJECTED"
+        );
 
         booking.setStatus(BookingStatus.REJECTED);
         bookingRepository.save(booking);

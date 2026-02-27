@@ -43,10 +43,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     long countPending();
 
     @Query("SELECT SUM(b.totalPrice) FROM Booking b WHERE b.status = 'CONFIRMED'")
-    Double totalRevenue();
+    Double getTotalRevenue();
 
     // Count bookings by status
     Long countByStatus(BookingStatus status);
-
-    Double getTotalRevenue();
+    
 }

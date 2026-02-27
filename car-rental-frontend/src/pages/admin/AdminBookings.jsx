@@ -4,6 +4,8 @@ import {
   approveBooking,
   rejectBooking,
 } from "../../services/adminBookingService";
+
+import { connectAdminSocket } from "../../context/useSocket";
 import { toast } from "react-toastify";
 
 export default function AdminBookings() {
@@ -12,11 +14,14 @@ export default function AdminBookings() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
 
+  /* ===============================
+        FETCH BOOKINGS
+  =============================== */
   const fetchBookings = async () => {
     try {
       const res = await getAllBookings("", 0, 100);
-      setBookings(res.content || []);
-    } catch {
+      setBookings(res?.content || []);
+    } catch (err) {
       toast.error("Failed to load bookings");
     } finally {
       setLoading(false);
@@ -27,18 +32,48 @@ export default function AdminBookings() {
     fetchBookings();
   }, []);
 
+  /* ===============================
+        REALTIME ADMIN SOCKET
+  =============================== */
+  useEffect(() => {
+    const disconnect = connectAdminSocket((message) => {
+      toast.info(message);
+
+      // auto refresh bookings
+      fetchBookings();
+    });
+
+    return () => {
+      if (disconnect) disconnect();
+    };
+  }, []);
+
+  /* ===============================
+        ACTIONS
+  =============================== */
   const handleApprove = async (id) => {
-    await approveBooking(id);
-    toast.success("Approved ✅");
-    fetchBookings();
+    try {
+      await approveBooking(id);
+      toast.success("Booking Approved ✅");
+      fetchBookings();
+    } catch {
+      toast.error("Approval failed");
+    }
   };
 
   const handleReject = async (id) => {
-    await rejectBooking(id);
-    toast.success("Rejected ❌");
-    fetchBookings();
+    try {
+      await rejectBooking(id);
+      toast.success("Booking Rejected ❌");
+      fetchBookings();
+    } catch {
+      toast.error("Reject failed");
+    }
   };
 
+  /* ===============================
+        FILTERING
+  =============================== */
   const filteredBookings = bookings.filter((b) => {
     const matchesSearch =
       b.name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -50,11 +85,13 @@ export default function AdminBookings() {
   });
 
   if (loading)
-    return <p className="text-center py-20 text-gray-400">Loading...</p>;
+    return (
+      <p className="text-center py-20 text-gray-400">Loading bookings...</p>
+    );
 
   return (
     <div className="p-8 space-y-6">
-      {/* HEADER */}
+      {/* ================= HEADER ================= */}
       <div className="flex flex-col md:flex-row justify-between gap-4">
         <h1 className="text-3xl font-bold text-cyan-400">Booking Management</h1>
 
@@ -81,7 +118,7 @@ export default function AdminBookings() {
         </div>
       </div>
 
-      {/* TABLE */}
+      {/* ================= TABLE ================= */}
       <div className="overflow-x-auto bg-gray-900 rounded-2xl shadow-xl">
         <table className="min-w-full text-sm text-gray-300">
           <thead className="bg-gray-800 text-gray-400 uppercase text-xs">

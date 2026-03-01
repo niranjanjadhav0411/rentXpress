@@ -27,3 +27,13 @@ export const approveBooking = async (id) => {
 export const rejectBooking = async (id) => {
   return api.put(`/bookings/admin/${id}/reject`);
 };
+
+export const getTopCar = async () => {
+  const res = await api.get("/bookings/admin/top-car");
+  return res.data;
+};
+
+export const getCarPerformance = async (carId) => {
+  const res = await api.get(`/bookings/admin/car-performance/${carId}`);
+  return res.data;
+};

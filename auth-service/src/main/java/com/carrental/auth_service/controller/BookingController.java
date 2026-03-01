@@ -268,4 +268,59 @@ public class BookingController {
 
         return ResponseEntity.ok(result);
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin/top-car")
+    public ResponseEntity<?> getTopPerformingCar() {
+
+        var result = bookingRepository
+                .findTopCarStats(PageRequest.of(0, 1));
+
+        if (result.isEmpty()) {
+            return ResponseEntity.ok(null);
+        }
+
+        Object[] row = result.get(0);
+
+        Car car = (Car) row[0];
+        Long totalBookings = (Long) row[1];
+        Double totalRevenue = (Double) row[2];
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "car", car,
+                        "totalBookings", totalBookings,
+                        "totalRevenue", totalRevenue
+                )
+        );
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin/car-performance/{carId}")
+    public ResponseEntity<?> getCarPerformance(@PathVariable Long carId) {
+
+        Object[] stats = bookingRepository.getCarPerformanceStats(carId);
+
+        Long totalBookings = (Long) stats[0];
+        Long confirmed = (Long) stats[1];
+        Double revenue = (Double) stats[2];
+
+        List<Object[]> monthly = bookingRepository.getCarMonthlyRevenue(carId);
+
+        List<Map<String, Object>> monthlyData = monthly.stream()
+                .map(row -> Map.of(
+                        "month", row[0],
+                        "revenue", row[1]
+                ))
+                .toList();
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "totalBookings", totalBookings,
+                        "confirmedBookings", confirmed,
+                        "totalRevenue", revenue,
+                        "monthlyRevenue", monthlyData
+                )
+        );
+    }
 }

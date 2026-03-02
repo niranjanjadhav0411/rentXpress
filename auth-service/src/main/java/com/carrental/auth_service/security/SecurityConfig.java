@@ -46,6 +46,7 @@ public class SecurityConfig {
 
                         // Public endpoints
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/cars/**").permitAll()
 
                         // FIXED ADMIN ENDPOINTS

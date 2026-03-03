@@ -26,9 +26,10 @@ export default function AdminDashboard() {
   const [recentBookings, setRecentBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  /* ===============================
-        FETCH DASHBOARD DATA
-  =============================== */
+  const [selectedCar, setSelectedCar] = useState(null);
+  const [performance, setPerformance] = useState(null);
+
+  /* ================= FETCH DATA ================= */
   useEffect(() => {
     fetchData();
   }, []);
@@ -52,9 +53,7 @@ export default function AdminDashboard() {
     }
   };
 
-  /* ===============================
-        REALTIME SOCKET
-  =============================== */
+  /* ================= REALTIME SOCKET ================= */
   useEffect(() => {
     const disconnect = connectAdminSocket((message) => {
       toast.info(message);
@@ -66,9 +65,7 @@ export default function AdminDashboard() {
     };
   }, []);
 
-  /* ===============================
-        PIE DATA
-  =============================== */
+  /* ================= PIE DATA ================= */
   const pieData = [
     { name: "Pending", value: stats?.pending || 0 },
     { name: "Confirmed", value: stats?.confirmed || 0 },
@@ -83,7 +80,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-8 space-y-8 relative">
       {/* ================= KPI CARDS ================= */}
       <div className="grid md:grid-cols-4 gap-6">
         <Card title="Total Bookings" value={stats?.totalBookings} />
@@ -102,7 +99,7 @@ export default function AdminDashboard() {
 
       {/* ================= CHARTS ================= */}
       <div className="grid md:grid-cols-2 gap-6">
-        {/* ===== BAR CHART ===== */}
+        {/* BAR CHART */}
         <div className="bg-gray-900 p-6 rounded-2xl shadow-xl">
           <h2 className="text-lg font-semibold mb-4 text-white">
             Monthly Revenue
@@ -122,7 +119,7 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        {/* ===== PIE CHART ===== */}
+        {/* PIE CHART */}
         <div className="bg-gray-900 p-6 rounded-2xl shadow-xl">
           <h2 className="text-lg font-semibold mb-4 text-white">
             Booking Status
@@ -194,6 +191,49 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
+
+      {/* ================= PERFORMANCE MODAL ================= */}
+      {selectedCar && performance && (
+        <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
+          <div className="bg-gray-900 w-[90%] max-w-4xl p-8 rounded-2xl shadow-2xl space-y-6 relative">
+            <button
+              onClick={() => {
+                setSelectedCar(null);
+                setPerformance(null);
+              }}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+            >
+              ✕
+            </button>
+
+            <h2 className="text-2xl font-bold text-cyan-400">
+              Car Performance Analytics
+            </h2>
+
+            <div className="grid md:grid-cols-3 gap-6">
+              <Card title="Total Bookings" value={performance.totalBookings} />
+              <Card title="Confirmed" value={performance.confirmedBookings} />
+              <Card
+                title="Total Revenue"
+                value={`₹${performance.totalRevenue}`}
+              />
+            </div>
+
+            <div className="bg-gray-800 p-6 rounded-xl">
+              <h3 className="text-white mb-4">Monthly Revenue</h3>
+
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={performance.monthlyRevenue || []}>
+                  <XAxis dataKey="month" stroke="#888" />
+                  <YAxis stroke="#888" />
+                  <Tooltip />
+                  <Bar dataKey="revenue" fill="#06b6d4" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -204,49 +244,6 @@ function Card({ title, value, color = "text-white" }) {
     <div className="bg-gray-900 p-6 rounded-2xl shadow-xl hover:shadow-2xl transition">
       <h3 className="text-gray-400 text-sm">{title}</h3>
       <p className={`text-2xl font-bold mt-2 ${color}`}>{value || 0}</p>
-    </div>
-  );
-}
-
-{
-  selectedCar && performance && (
-    <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
-      <div className="bg-gray-900 w-[90%] max-w-4xl p-8 rounded-2xl shadow-2xl space-y-6 relative">
-        <button
-          onClick={() => setSelectedCar(null)}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white"
-        >
-          ✕
-        </button>
-
-        <h2 className="text-2xl font-bold text-cyan-400">
-          Car Performance Analytics
-        </h2>
-
-        {/* KPI Section */}
-        <div className="grid md:grid-cols-3 gap-6">
-          <StatCard title="Total Bookings" value={performance.totalBookings} />
-          <StatCard title="Confirmed" value={performance.confirmedBookings} />
-          <StatCard
-            title="Total Revenue"
-            value={`₹${performance.totalRevenue}`}
-          />
-        </div>
-
-        {/* Monthly Revenue Chart */}
-        <div className="bg-gray-800 p-6 rounded-xl">
-          <h3 className="text-white mb-4">Monthly Revenue</h3>
-
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={performance.monthlyRevenue}>
-              <XAxis dataKey="month" stroke="#888" />
-              <YAxis stroke="#888" />
-              <Tooltip />
-              <Bar dataKey="revenue" fill="#06b6d4" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
     </div>
   );
 }

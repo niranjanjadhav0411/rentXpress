@@ -3,9 +3,12 @@ package com.carrental.auth_service.controller;
 import com.carrental.auth_service.dto.BookingRequest;
 import com.carrental.auth_service.dto.Revenue;
 import com.carrental.auth_service.entity.*;
+import com.carrental.auth_service.events.BookingApprovedEvent;
+import com.carrental.auth_service.events.BookingCreatedEvent;
+import com.carrental.auth_service.events.BookingRejectedEvent;
 import com.carrental.auth_service.repository.*;
-import com.carrental.auth_service.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +29,7 @@ public class BookingController {
 
     private final BookingRepository bookingRepository;
     private final CarRepository carRepository;
-    private final NotificationService notificationService;
+    private final ApplicationEventPublisher eventPublisher;
 
     // ================= CREATE BOOKING =================
     @PostMapping
@@ -56,18 +59,13 @@ public class BookingController {
         }
 
         Car car = carRepository.findById(request.getCarId())
-                .orElseThrow(() ->
-                        new RuntimeException("Car not found"));
+                .orElseThrow(() -> new RuntimeException("Car not found"));
 
         List<Booking> conflicts = bookingRepository.findConflictingBookings(
                 car.getId(),
                 startDate,
                 endDate,
                 List.of(BookingStatus.PENDING, BookingStatus.CONFIRMED)
-        );
-
-        notificationService.notifyAdmin(
-                "New booking from " + user.getEmail()
         );
 
         if (!conflicts.isEmpty()) {
@@ -87,6 +85,7 @@ public class BookingController {
                 .totalPrice(totalPrice)
                 .status(BookingStatus.PENDING)
 
+                // enquiry fields
                 .name(request.getName())
                 .email(request.getEmail())
                 .contact(request.getContact())
@@ -95,13 +94,22 @@ public class BookingController {
                 .pickupAddress(request.getPickupAddress())
                 .build();
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(bookingRepository.save(booking));
+        Booking saved = bookingRepository.save(booking);
+
+        // Publish event instead of calling notification directly
+        eventPublisher.publishEvent(new BookingCreatedEvent(saved));
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     // ================= MY BOOKINGS =================
     @GetMapping("/my")
     public ResponseEntity<?> myBookings(Authentication authentication) {
+
+        if (authentication == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("User not authenticated");
+        }
 
         User user = (User) authentication.getPrincipal();
 
@@ -118,16 +126,14 @@ public class BookingController {
         User user = (User) authentication.getPrincipal();
 
         Booking booking = bookingRepository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("Booking not found"));
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
 
-        // Check ownership
         if (!booking.getUser().getId().equals(user.getId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("You cannot cancel this booking");
         }
-        
-        // User can ONLY cancel PENDING bookings
+
+        // Only pending bookings can be cancelled
         if (booking.getStatus() != BookingStatus.PENDING) {
             return ResponseEntity.badRequest()
                     .body("You can only cancel pending bookings");
@@ -171,21 +177,18 @@ public class BookingController {
     public ResponseEntity<?> approveBooking(@PathVariable Long id) {
 
         Booking booking = bookingRepository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("Booking not found"));
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
 
         if (booking.getStatus() != BookingStatus.PENDING) {
             return ResponseEntity.badRequest()
                     .body("Only pending bookings can be approved");
         }
 
-        notificationService.notifyUser(
-                booking.getUser().getEmail(),
-                "Your booking has been CONFIRMED"
-        );
-
         booking.setStatus(BookingStatus.CONFIRMED);
-        bookingRepository.save(booking);
+        Booking saved = bookingRepository.save(booking);
+
+        // 🔥 Publish event
+        eventPublisher.publishEvent(new BookingApprovedEvent(saved));
 
         return ResponseEntity.ok("Booking approved successfully");
     }
@@ -196,21 +199,18 @@ public class BookingController {
     public ResponseEntity<?> rejectBooking(@PathVariable Long id) {
 
         Booking booking = bookingRepository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("Booking not found"));
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
 
         if (booking.getStatus() != BookingStatus.PENDING) {
             return ResponseEntity.badRequest()
                     .body("Only pending bookings can be rejected");
         }
 
-        notificationService.notifyUser(
-                booking.getUser().getEmail(),
-                "Your booking was REJECTED"
-        );
-
         booking.setStatus(BookingStatus.REJECTED);
-        bookingRepository.save(booking);
+        Booking saved = bookingRepository.save(booking);
+
+        // 🔥 Publish event
+        eventPublisher.publishEvent(new BookingRejectedEvent(saved));
 
         return ResponseEntity.ok("Booking rejected successfully");
     }
@@ -223,7 +223,6 @@ public class BookingController {
         List<Booking> bookings = bookingRepository.findAll();
 
         long totalBookings = bookings.size();
-
         long pending = bookings.stream()
                 .filter(b -> b.getStatus() == BookingStatus.PENDING)
                 .count();
@@ -269,6 +268,7 @@ public class BookingController {
         return ResponseEntity.ok(result);
     }
 
+    // ================= ADMIN - TOP CAR =================
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/top-car")
     public ResponseEntity<?> getTopPerformingCar() {
@@ -291,35 +291,6 @@ public class BookingController {
                         "car", car,
                         "totalBookings", totalBookings,
                         "totalRevenue", totalRevenue
-                )
-        );
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/admin/car-performance/{carId}")
-    public ResponseEntity<?> getCarPerformance(@PathVariable Long carId) {
-
-        Object[] stats = bookingRepository.getCarPerformanceStats(carId);
-
-        Long totalBookings = (Long) stats[0];
-        Long confirmed = (Long) stats[1];
-        Double revenue = (Double) stats[2];
-
-        List<Object[]> monthly = bookingRepository.getCarMonthlyRevenue(carId);
-
-        List<Map<String, Object>> monthlyData = monthly.stream()
-                .map(row -> Map.of(
-                        "month", row[0],
-                        "revenue", row[1]
-                ))
-                .toList();
-
-        return ResponseEntity.ok(
-                Map.of(
-                        "totalBookings", totalBookings,
-                        "confirmedBookings", confirmed,
-                        "totalRevenue", revenue,
-                        "monthlyRevenue", monthlyData
                 )
         );
     }

@@ -18,13 +18,13 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 export default function App() {
   return (
     <>
+      <Navbar />
       <Routes>
         {/* PUBLIC + USER ROUTES */}
         <Route
           path="/*"
           element={
             <div className="min-h-screen flex flex-col bg-gray-950 text-white">
-              <Navbar />
               <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <Routes>
                   <Route path="/" element={<Home />} />

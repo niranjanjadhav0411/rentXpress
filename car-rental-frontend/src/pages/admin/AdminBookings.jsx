@@ -14,9 +14,8 @@ export default function AdminBookings() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
 
-  /* ===============================
-        FETCH BOOKINGS
-  =============================== */
+  //    FETCH BOOKINGS
+
   const fetchBookings = async () => {
     try {
       const res = await getAllBookings("", 0, 100);
@@ -32,9 +31,7 @@ export default function AdminBookings() {
     fetchBookings();
   }, []);
 
-  /* ===============================
-        REALTIME ADMIN SOCKET
-  =============================== */
+  //    REALTIME ADMIN SOCKET
   useEffect(() => {
     const disconnect = connectAdminSocket((message) => {
       toast.info(message);
@@ -48,9 +45,7 @@ export default function AdminBookings() {
     };
   }, []);
 
-  /* ===============================
-        ACTIONS
-  =============================== */
+  // Actions
   const handleApprove = async (id) => {
     try {
       await approveBooking(id);
@@ -71,9 +66,8 @@ export default function AdminBookings() {
     }
   };
 
-  /* ===============================
-        FILTERING
-  =============================== */
+  //   FILTERING
+
   const filteredBookings = bookings.filter((b) => {
     const matchesSearch =
       b.name?.toLowerCase().includes(search.toLowerCase()) ||

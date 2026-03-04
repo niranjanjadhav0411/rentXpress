@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
 import { useState } from "react";
+import NotificationBell from "./admin/NotificationBell";
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ export default function Navbar() {
             RentXpress
           </NavLink>
 
-          {/* Desktop Menu */}
+          {/* ================= DESKTOP MENU ================= */}
           <nav className="hidden md:flex items-center gap-6">
             <NavLink
               to="/"
@@ -79,16 +80,22 @@ export default function Navbar() {
                 </NavLink>
               </>
             ) : (
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg font-medium transition"
-              >
-                Logout
-              </button>
+              <div className="flex items-center gap-4">
+                {/* ✅ Notification Bell */}
+                <NotificationBell user={user} />
+
+                {/* Logout */}
+                <button
+                  onClick={handleLogout}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg font-medium transition"
+                >
+                  Logout
+                </button>
+              </div>
             )}
           </nav>
 
-          {/* Mobile Toggle */}
+          {/* ================= MOBILE TOGGLE ================= */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             className="md:hidden text-white text-2xl"
@@ -97,7 +104,7 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* Mobile Menu */}
+        {/* ================= MOBILE MENU ================= */}
         {menuOpen && (
           <div className="md:hidden pb-4 space-y-3">
             <NavLink to="/" className="block text-white">
@@ -125,9 +132,18 @@ export default function Navbar() {
                 </NavLink>
               </>
             ) : (
-              <button onClick={handleLogout} className="block text-red-400">
-                Logout
-              </button>
+              <div className="flex flex-col gap-3">
+                {/* ✅ Notification Bell */}
+                <NotificationBell user={user} />
+
+                {/* Logout */}
+                <button
+                  onClick={handleLogout}
+                  className="text-red-400 text-left"
+                >
+                  Logout
+                </button>
+              </div>
             )}
           </div>
         )}

@@ -60,22 +60,5 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     """)
     List<Object[]> findTopCarStats(Pageable pageable);
 
-    @Query("""
-SELECT COUNT(b),
-       SUM(CASE WHEN b.status = 'CONFIRMED' THEN 1 ELSE 0 END),
-       SUM(b.totalPrice)
-FROM Booking b
-WHERE b.car.id = :carId
-""")
-    Object[] getCarPerformanceStats(Long carId);
-
-    @Query("""
-SELECT MONTH(b.startDate), SUM(b.totalPrice)
-FROM Booking b
-WHERE b.car.id = :carId AND b.status = 'CONFIRMED'
-GROUP BY MONTH(b.startDate)
-ORDER BY MONTH(b.startDate)
-""")
-    List<Object[]> getCarMonthlyRevenue(Long carId);
     
 }

@@ -31,31 +31,31 @@ public class NotificationController {
         );
     }
 
-//    @GetMapping("/unread-count")
-//    public ResponseEntity<?> getUnreadCount(Authentication authentication) {
-//
-//        if (authentication == null) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-//                    .body("Unauthorized");
-//        }
-//
-//        String email = authentication.name();
-//
-//        long count =
-//                notificationRepository
-//                        .countByRecipientEmailAndReadStatusFalse(email);
-//
-//        return ResponseEntity.ok(count);
-//    }
-//
-//    @PutMapping("/{id}/read")
-//    public ResponseEntity<?> markAsRead(@PathVariable Long id) {
-//        Notification notification =
-//                notificationRepository.findById(id).orElseThrow();
-//
-//        notification.setReadStatus(true);
-//        notificationRepository.save(notification);
-//
-//        return ResponseEntity.ok("Marked as read");
-//    }
+    @GetMapping("/unread-count")
+    public ResponseEntity<?> getUnreadCount(Authentication authentication) {
+
+        if (authentication == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Unauthorized");
+        }
+
+        String email = authentication.name();
+
+        long count =
+                notificationRepository
+                        .countByRecipientEmailAndReadStatusFalse(email);
+
+        return ResponseEntity.ok(count);
+    }
+
+    @PutMapping("/{id}/read")
+    public ResponseEntity<?> markAsRead(@PathVariable Long id) {
+        Notification notification =
+                notificationRepository.findById(id).orElseThrow();
+
+        notification.setReadStatus(true);
+        notificationRepository.save(notification);
+
+        return ResponseEntity.ok("Marked as read");
+    }
 }

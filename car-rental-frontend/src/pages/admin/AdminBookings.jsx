@@ -5,7 +5,7 @@ import {
   rejectBooking,
 } from "../../services/adminBookingService";
 
-import { connectAdminSocket } from "../../context/useSocket";
+import { connectAdminSocket, disconnectSocket } from "../../context/useSocket";
 import { toast } from "react-toastify";
 
 export default function AdminBookings() {
@@ -14,8 +14,7 @@ export default function AdminBookings() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
 
-  //    FETCH BOOKINGS
-
+  /* ================= FETCH BOOKINGS ================= */
   const fetchBookings = async () => {
     try {
       const res = await getAllBookings("", 0, 100);
@@ -31,21 +30,20 @@ export default function AdminBookings() {
     fetchBookings();
   }, []);
 
-  //    REALTIME ADMIN SOCKET
+  /* ================= SOCKET ================= */
   useEffect(() => {
-    const disconnect = connectAdminSocket((message) => {
+    const socket = connectAdminSocket("admin", (message) => {
       toast.info(message);
-
-      // auto refresh bookings
       fetchBookings();
     });
 
     return () => {
-      if (disconnect) disconnect();
+      disconnectSocket();
     };
   }, []);
 
-  // Actions
+  /* ================= ACTIONS ================= */
+
   const handleApprove = async (id) => {
     try {
       await approveBooking(id);
@@ -66,7 +64,7 @@ export default function AdminBookings() {
     }
   };
 
-  //   FILTERING
+  /* ================= FILTER ================= */
 
   const filteredBookings = bookings.filter((b) => {
     const matchesSearch =
@@ -85,7 +83,6 @@ export default function AdminBookings() {
 
   return (
     <div className="p-8 space-y-6">
-      {/* ================= HEADER ================= */}
       <div className="flex flex-col md:flex-row justify-between gap-4">
         <h1 className="text-3xl font-bold text-cyan-400">Booking Management</h1>
 
@@ -112,7 +109,6 @@ export default function AdminBookings() {
         </div>
       </div>
 
-      {/* ================= TABLE ================= */}
       <div className="overflow-x-auto bg-gray-900 rounded-2xl shadow-xl">
         <table className="min-w-full text-sm text-gray-300">
           <thead className="bg-gray-800 text-gray-400 uppercase text-xs">
@@ -133,10 +129,9 @@ export default function AdminBookings() {
             {filteredBookings.map((b) => (
               <tr
                 key={b.id}
-                className="border-t border-gray-800 hover:bg-gray-800/50 transition"
+                className="border-t border-gray-800 hover:bg-gray-800/50"
               >
                 <td className="px-6 py-4">{b.id}</td>
-
                 <td className="px-6 py-4">
                   {b.car?.brand} {b.car?.model}
                 </td>
@@ -147,13 +142,10 @@ export default function AdminBookings() {
                 </td>
 
                 <td className="px-6 py-4">{b.contact}</td>
-
                 <td className="px-6 py-4">
                   {b.startDate} → {b.endDate}
                 </td>
-
                 <td className="px-6 py-4">{b.totalDays}</td>
-
                 <td className="px-6 py-4 text-cyan-400 font-semibold">
                   ₹{b.totalPrice}
                 </td>
@@ -195,14 +187,6 @@ export default function AdminBookings() {
                 </td>
               </tr>
             ))}
-
-            {filteredBookings.length === 0 && (
-              <tr>
-                <td colSpan="9" className="text-center py-10 text-gray-500">
-                  No bookings found.
-                </td>
-              </tr>
-            )}
           </tbody>
         </table>
       </div>

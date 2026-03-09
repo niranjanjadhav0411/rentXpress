@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
 import api from "../../services/api";
+import { connectSocket, disconnectSocket } from "../../context/useSocket";
+import { toast } from "react-toastify";
 
 export default function NotificationBell({ user }) {
   const [notifications, setNotifications] = useState([]);
@@ -8,27 +10,37 @@ export default function NotificationBell({ user }) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (user) {
+    if (!user) return;
+
+    fetchNotifications();
+    fetchUnreadCount();
+
+    connectSocket(user.email, (message) => {
+      toast.success(message);
       fetchNotifications();
-      fetchUnread();
-    }
+      fetchUnreadCount();
+    });
+
+    return () => {
+      disconnectSocket();
+    };
   }, [user]);
 
   const fetchNotifications = async () => {
     try {
       const res = await api.get("/notifications");
       setNotifications(res.data || []);
-    } catch (e) {
-      console.error("Notification fetch error");
+    } catch (error) {
+      console.error("Notification fetch error:", error);
     }
   };
 
-  const fetchUnread = async () => {
+  const fetchUnreadCount = async () => {
     try {
       const res = await api.get("/notifications/unread-count");
       setUnread(res.data || 0);
-    } catch (e) {
-      console.error("Unread count error");
+    } catch (error) {
+      console.error("Unread count error:", error);
     }
   };
 
@@ -36,9 +48,9 @@ export default function NotificationBell({ user }) {
     try {
       await api.put(`/notifications/${id}/read`);
       fetchNotifications();
-      fetchUnread();
-    } catch (e) {
-      console.error("Mark read error");
+      fetchUnreadCount();
+    } catch (error) {
+      console.error("Mark read error:", error);
     }
   };
 
@@ -46,7 +58,6 @@ export default function NotificationBell({ user }) {
 
   return (
     <div className="relative">
-      {/* 🔔 Bell Button */}
       <button
         onClick={() => setOpen(!open)}
         className="relative text-white hover:text-cyan-400 transition"
@@ -60,7 +71,6 @@ export default function NotificationBell({ user }) {
         )}
       </button>
 
-      {/* Dropdown */}
       {open && (
         <div className="absolute right-0 mt-4 w-80 bg-gray-900 border border-gray-800 rounded-xl shadow-xl z-50">
           <div className="p-4 border-b border-gray-800 font-semibold text-white">
@@ -81,6 +91,7 @@ export default function NotificationBell({ user }) {
                 }`}
               >
                 {n.message}
+
                 <div className="text-xs text-gray-500 mt-1">
                   {new Date(n.createdAt).toLocaleString()}
                 </div>

@@ -5,7 +5,8 @@ import {
   getAllBookings,
 } from "../../services/adminBookingService";
 
-import { connectAdminSocket } from "../../context/useSocket";
+import { connectAdminSocket, disconnectSocket } from "../../context/useSocket";
+
 import { toast } from "react-toastify";
 
 import {
@@ -30,9 +31,6 @@ export default function AdminDashboard() {
   const [performance, setPerformance] = useState(null);
 
   /* ================= FETCH DATA ================= */
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const fetchData = async () => {
     try {
@@ -53,19 +51,27 @@ export default function AdminDashboard() {
     }
   };
 
-  /* ================= REALTIME SOCKET ================= */
   useEffect(() => {
-    const disconnect = connectAdminSocket((message) => {
+    fetchData();
+  }, []);
+
+  /* ================= REALTIME SOCKET ================= */
+
+  useEffect(() => {
+    const socket = connectAdminSocket("admin", (message) => {
       toast.info(message);
+
+      // refresh dashboard data
       fetchData();
     });
 
     return () => {
-      if (disconnect) disconnect();
+      disconnectSocket();
     };
   }, []);
 
   /* ================= PIE DATA ================= */
+
   const pieData = [
     { name: "Pending", value: stats?.pending || 0 },
     { name: "Confirmed", value: stats?.confirmed || 0 },
@@ -82,14 +88,18 @@ export default function AdminDashboard() {
   return (
     <div className="p-8 space-y-8 relative">
       {/* ================= KPI CARDS ================= */}
+
       <div className="grid md:grid-cols-4 gap-6">
         <Card title="Total Bookings" value={stats?.totalBookings} />
+
         <Card title="Pending" value={stats?.pending} color="text-yellow-400" />
+
         <Card
           title="Confirmed"
           value={stats?.confirmed}
           color="text-green-400"
         />
+
         <Card
           title="Total Revenue"
           value={`₹${stats?.totalRevenue || 0}`}
@@ -98,8 +108,10 @@ export default function AdminDashboard() {
       </div>
 
       {/* ================= CHARTS ================= */}
+
       <div className="grid md:grid-cols-2 gap-6">
         {/* BAR CHART */}
+
         <div className="bg-gray-900 p-6 rounded-2xl shadow-xl">
           <h2 className="text-lg font-semibold mb-4 text-white">
             Monthly Revenue
@@ -113,6 +125,7 @@ export default function AdminDashboard() {
                 <XAxis dataKey="month" stroke="#888" />
                 <YAxis stroke="#888" />
                 <Tooltip />
+
                 <Bar dataKey="revenue" fill="#06b6d4" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -120,6 +133,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* PIE CHART */}
+
         <div className="bg-gray-900 p-6 rounded-2xl shadow-xl">
           <h2 className="text-lg font-semibold mb-4 text-white">
             Booking Status
@@ -138,6 +152,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* ================= RECENT BOOKINGS ================= */}
+
       <div className="bg-gray-900 p-6 rounded-2xl shadow-xl">
         <h2 className="text-lg font-semibold mb-6 text-white">
           Recent Bookings
@@ -193,6 +208,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* ================= PERFORMANCE MODAL ================= */}
+
       {selectedCar && performance && (
         <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
           <div className="bg-gray-900 w-[90%] max-w-4xl p-8 rounded-2xl shadow-2xl space-y-6 relative">
@@ -212,7 +228,9 @@ export default function AdminDashboard() {
 
             <div className="grid md:grid-cols-3 gap-6">
               <Card title="Total Bookings" value={performance.totalBookings} />
+
               <Card title="Confirmed" value={performance.confirmedBookings} />
+
               <Card
                 title="Total Revenue"
                 value={`₹${performance.totalRevenue}`}
@@ -227,6 +245,7 @@ export default function AdminDashboard() {
                   <XAxis dataKey="month" stroke="#888" />
                   <YAxis stroke="#888" />
                   <Tooltip />
+
                   <Bar dataKey="revenue" fill="#06b6d4" />
                 </BarChart>
               </ResponsiveContainer>
@@ -239,10 +258,12 @@ export default function AdminDashboard() {
 }
 
 /* ================= KPI CARD ================= */
+
 function Card({ title, value, color = "text-white" }) {
   return (
     <div className="bg-gray-900 p-6 rounded-2xl shadow-xl hover:shadow-2xl transition">
       <h3 className="text-gray-400 text-sm">{title}</h3>
+
       <p className={`text-2xl font-bold mt-2 ${color}`}>{value || 0}</p>
     </div>
   );

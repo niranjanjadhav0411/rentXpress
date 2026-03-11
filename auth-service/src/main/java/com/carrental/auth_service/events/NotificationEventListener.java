@@ -37,7 +37,7 @@ public class NotificationEventListener {
     public void handleBookingApproved(BookingApprovedEvent event) {
 
         String email = event.getBooking().getUser().getEmail();
-        String message = "Your booking has been CONFIRMED 🚗";
+        String message = "Your booking has been CONFIRMED";
 
         Notification notification = Notification.builder()
                 .recipientEmail(email)
@@ -54,7 +54,7 @@ public class NotificationEventListener {
     public void handleBookingRejected(BookingRejectedEvent event) {
 
         String email = event.getBooking().getUser().getEmail();
-        String message = "Your booking was REJECTED ❌";
+        String message = "Your booking was REJECTED";
 
         Notification notification = Notification.builder()
                 .recipientEmail(email)

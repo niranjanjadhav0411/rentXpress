@@ -1,31 +1,65 @@
-import { Client } from "@stomp/stompjs";
+import { io } from "socket.io-client";
 
-export const connectAdminSocket = (onMessage) => {
-  const client = new Client({
-    brokerURL: "ws://localhost:8081/ws",
-    reconnectDelay: 5000,
+let socket = null;
+
+const SOCKET_URL = "http://localhost:8081";
+
+/* ================= USER SOCKET ================= */
+export const connectSocket = (email, callback) => {
+  const token = localStorage.getItem("token");
+
+  socket = io(SOCKET_URL, {
+    auth: {
+      token: token,
+    },
   });
 
-  client.onConnect = () => {
-    client.subscribe("/topic/admin", (message) => {
-      onMessage(message.body);
-    });
-  };
+  socket.on("connect", () => {
+    console.log("User socket connected:", socket.id);
+    socket.emit("userJoin", email);
+  });
 
-  client.activate();
+  socket.on("notification", (message) => {
+    if (callback) callback(message);
+  });
+
+  socket.on("connect_error", (err) => {
+    console.error("Socket error:", err.message);
+  });
+
+  return socket;
 };
 
-export const connectUserSocket = (email, onMessage) => {
-  const client = new Client({
-    brokerURL: "ws://localhost:8081/ws",
-    reconnectDelay: 5000,
+/* ================= ADMIN SOCKET ================= */
+export const connectAdminSocket = (email, callback) => {
+  const token = localStorage.getItem("token");
+
+  socket = io(SOCKET_URL, {
+    auth: {
+      token: token,
+    },
   });
 
-  client.onConnect = () => {
-    client.subscribe(`/topic/user/${email}`, (message) => {
-      onMessage(message.body);
-    });
-  };
+  socket.on("connect", () => {
+    console.log("Admin socket connected:", socket.id);
+    socket.emit("adminJoin", email || "admin");
+  });
 
-  client.activate();
+  socket.on("notification", (message) => {
+    if (callback) callback(message);
+  });
+
+  socket.on("connect_error", (err) => {
+    console.error("Socket error:", err.message);
+  });
+
+  return socket;
+};
+
+/* ================= DISCONNECT ================= */
+export const disconnectSocket = () => {
+  if (socket) {
+    socket.disconnect();
+    socket = null;
+  }
 };

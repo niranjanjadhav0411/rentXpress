@@ -55,13 +55,13 @@ public class NotificationEventListener {
 
         String email = event.getBooking().getUser().getEmail();
         String message = "Your booking was REJECTED";
-//
-//        Notification notification = Notification.builder()
-//                .recipientEmail(email)
-//                .message(message)
-//                .readStatus(false)
-//                .createdAt(LocalDateTime.now())
-//                .build();
+
+        Notification notification = Notification.builder()
+                .recipientEmail(email)
+                .message(message)
+                .readStatus(false)
+                .createdAt(LocalDateTime.now())
+                .build();
 
         notificationRepository.save(notification);
         notificationService.notifyUser(email, message);

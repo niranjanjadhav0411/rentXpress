@@ -45,9 +45,9 @@ export const connectAdminSocket = (email, callback) => {
     socket.emit("adminJoin", email || "admin");
   });
 
-  // socket.on("notification", (message) => {
-  //   if (callback) callback(message);
-  // });
+  socket.on("notification", (message) => {
+    if (callback) callback(message);
+  });
 
   socket.on("connect_error", (err) => {
     console.error("Socket error:", err.message);

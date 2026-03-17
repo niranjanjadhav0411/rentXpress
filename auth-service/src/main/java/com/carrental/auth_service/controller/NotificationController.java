@@ -58,7 +58,7 @@ public class NotificationController {
 
         notification.setReadStatus(true);
 
-//        notificationRepository.save(notification);
+        notificationRepository.save(notification);
 
         return ResponseEntity.ok("Marked as read");
     }

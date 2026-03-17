@@ -56,7 +56,7 @@ public class NotificationController {
                 notificationRepository.findById(id)
                         .orElseThrow(() -> new RuntimeException("Notification not found"));
 
-        notification.setReadStatus(true);
+//        notification.setReadStatus(true);
 
         notificationRepository.save(notification);
 

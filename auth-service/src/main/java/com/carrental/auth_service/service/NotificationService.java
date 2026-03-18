@@ -14,7 +14,7 @@ public class NotificationService {
         messagingTemplate.convertAndSend("/topic/admin", message);
     }
 
-    public void notifyUser(String email, String message) {
-        messagingTemplate.convertAndSend("/topic/user/" + email, message);
-    }
+//    public void notifyUser(String email, String message) {
+//        messagingTemplate.convertAndSend("/topic/user/" + email, message);
+//    }
 }

@@ -34,8 +34,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         return path.startsWith("/api/auth/")
                 || path.startsWith("/ws")
+                || path.startsWith("/socket.io")
                 || (request.getMethod().equals("GET") && path.startsWith("/api/cars"));
-    }
+    } 
 
     @Override
     protected void doFilterInternal(
@@ -86,4 +87,5 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
+
 }

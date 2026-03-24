@@ -39,7 +39,7 @@ public class NotificationController {
             return ResponseEntity.status(401).body("Unauthorized");
         }
 
-//        String email = authentication.getName();
+        String email = authentication.getName();
 
         long count =
                 notificationRepository

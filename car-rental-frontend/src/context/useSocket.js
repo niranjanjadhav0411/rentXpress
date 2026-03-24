@@ -6,12 +6,8 @@ const SOCKET_URL = "http://localhost:8081";
 
 /* ================= USER SOCKET ================= */
 export const connectSocket = (email, callback) => {
-  const token = localStorage.getItem("token");
-
   socket = io(SOCKET_URL, {
-    auth: {
-      token: token,
-    },
+    transports: ["websocket"],
   });
 
   socket.on("connect", () => {
@@ -32,12 +28,8 @@ export const connectSocket = (email, callback) => {
 
 /* ================= ADMIN SOCKET ================= */
 export const connectAdminSocket = (email, callback) => {
-  const token = localStorage.getItem("token");
-
   socket = io(SOCKET_URL, {
-    auth: {
-      token: token,
-    },
+    transports: ["websocket"],
   });
 
   socket.on("connect", () => {

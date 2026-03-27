@@ -49,17 +49,17 @@ public class NotificationController {
     }
 
     // ================= MARK AS READ =================
-    @PutMapping("/{id}/read")
-    public ResponseEntity<?> markAsRead(@PathVariable Long id) {
-
-        Notification notification =
-                notificationRepository.findById(id)
-                        .orElseThrow(() -> new RuntimeException("Notification not found"));
-
-        notification.setReadStatus(true);
-
-        notificationRepository.save(notification);
-
-        return ResponseEntity.ok("Marked as read");
+//    @PutMapping("/{id}/read")
+//    public ResponseEntity<?> markAsRead(@PathVariable Long id) {
+//
+//        Notification notification =
+//                notificationRepository.findById(id)
+//                        .orElseThrow(() -> new RuntimeException("Notification not found"));
+//
+//        notification.setReadStatus(true);
+//
+//        notificationRepository.save(notification);
+//
+//        return ResponseEntity.ok("Marked as read");
     }
 }

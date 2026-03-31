@@ -10,9 +10,9 @@ public class NotificationService {
 
     private final SimpMessagingTemplate messagingTemplate;
 
-    public void notifyAdmin(String message) {
-        messagingTemplate.convertAndSend("/topic/admin", message);
-    }
+//    public void notifyAdmin(String message) {
+//        messagingTemplate.convertAndSend("/topic/admin", message);
+//    }
 
     public void notifyUser(String email, String message) {
         messagingTemplate.convertAndSend("/topic/user/" + email, message);

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
 import api from "../../services/api";
-import { connectSocket, disconnectSocket } from "../../context/useSocket";
+import { connectSocket } from "../../context/useSocket";
 import { toast } from "react-toastify";
 
 export default function NotificationBell({ user }) {
@@ -17,13 +17,18 @@ export default function NotificationBell({ user }) {
 
     connectSocket(user.email, (message) => {
       toast.success(message);
-      fetchNotifications();
-      fetchUnreadCount();
-    });
 
-    return () => {
-      disconnectSocket();
-    };
+      const newNotification = {
+        id: Date.now(),
+        message: message,
+        readStatus: false,
+        createdAt: new Date().toISOString(),
+      };
+
+      setNotifications((prev) => [newNotification, ...prev]);
+
+      setUnread((prev) => prev + 1);
+    });
   }, [user]);
 
   const fetchNotifications = async () => {
@@ -47,8 +52,12 @@ export default function NotificationBell({ user }) {
   const markAsRead = async (id) => {
     try {
       await api.put(`/notifications/${id}/read`);
-      fetchNotifications();
-      fetchUnreadCount();
+
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, readStatus: true } : n)),
+      );
+
+      setUnread((prev) => Math.max(prev - 1, 0));
     } catch (error) {
       console.error("Mark read error:", error);
     }

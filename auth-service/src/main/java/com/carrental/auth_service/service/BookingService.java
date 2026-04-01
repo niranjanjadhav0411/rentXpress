@@ -3,10 +3,16 @@ package com.carrental.auth_service.service;
 import com.carrental.auth_service.dto.BookingRequest;
 import com.carrental.auth_service.dto.BookingResponse;
 import com.carrental.auth_service.entity.*;
+import com.carrental.auth_service.events.BookingApprovedEvent;
+import com.carrental.auth_service.events.BookingCreatedEvent;
+import com.carrental.auth_service.events.BookingRejectedEvent;
 import com.carrental.auth_service.repository.BookingRepository;
 import com.carrental.auth_service.repository.CarRepository;
 import com.carrental.auth_service.repository.UserRepository;
+
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +27,9 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final CarRepository carRepository;
     private final UserRepository userRepository;
+
+    // ✅ ADD THIS (VERY IMPORTANT)
+    private final ApplicationEventPublisher eventPublisher;
 
     // ================= CREATE BOOKING =================
     public Booking createBooking(BookingRequest request, String userEmail) {
@@ -70,7 +79,12 @@ public class BookingService {
                 .status(BookingStatus.PENDING)
                 .build();
 
-        return bookingRepository.save(booking);
+        Booking savedBooking = bookingRepository.save(booking);
+
+        // ✅ 🔥 FIRE EVENT (USER → ADMIN)
+        eventPublisher.publishEvent(new BookingCreatedEvent(savedBooking));
+
+        return savedBooking;
     }
 
     // ================= USER BOOKINGS =================
@@ -145,5 +159,11 @@ public class BookingService {
         }
 
         booking.setStatus(status);
+
+        if (status == BookingStatus.CONFIRMED) {
+            eventPublisher.publishEvent(new BookingApprovedEvent(booking));
+        } else if (status == BookingStatus.REJECTED) {
+            eventPublisher.publishEvent(new BookingRejectedEvent(booking));
+        }
     }
 }

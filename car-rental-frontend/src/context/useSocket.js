@@ -1,57 +1,64 @@
-import { io } from "socket.io-client";
+import SockJS from "sockjs-client";
+import { Client } from "@stomp/stompjs";
 
-let socket = null;
+let stompClient = null;
+let isConnecting = false;
 
-const SOCKET_URL = "http://localhost:8081";
-
-/* ================= USER SOCKET ================= */
 export const connectSocket = (email, callback) => {
-  socket = io(SOCKET_URL, {
-    transports: ["websocket"],
+  if (stompClient && stompClient.connected) {
+    return stompClient;
+  }
+
+  if (isConnecting) return;
+
+  isConnecting = true;
+
+  const socket = new SockJS("http://localhost:8081/ws");
+
+  stompClient = new Client({
+    webSocketFactory: () => socket,
+    reconnectDelay: 5000,
+
+    onConnect: () => {
+      console.log("WebSocket Connected");
+
+      // ================= USER TOPIC =================
+      if (email) {
+        stompClient.subscribe(`/topic/user/${email}`, (msg) => {
+          callback && callback(msg.body);
+        });
+      }
+
+      // ================= ADMIN TOPIC =================
+      stompClient.subscribe("/topic/admin", (msg) => {
+        callback && callback(msg.body);
+      });
+    },
+
+    onStompError: (frame) => {
+      console.error("STOMP error:", frame);
+      isConnecting = false;
+    },
+
+    onWebSocketClose: () => {
+      console.log("WebSocket Closed");
+      isConnecting = false;
+    },
+
+    onWebSocketError: (err) => {
+      console.error("WebSocket error:", err);
+      isConnecting = false;
+    },
   });
 
-  socket.on("connect", () => {
-    console.log("User socket connected:", socket.id);
-    socket.emit("userJoin", email);
-  });
-
-  socket.on("notification", (message) => {
-    if (callback) callback(message);
-  });
-
-  socket.on("connect_error", (err) => {
-    console.error("Socket error:", err.message);
-  });
-
-  return socket;
+  stompClient.activate();
+  return stompClient;
 };
 
-/* ================= ADMIN SOCKET ================= */
-export const connectAdminSocket = (email, callback) => {
-  socket = io(SOCKET_URL, {
-    transports: ["websocket"],
-  });
-
-  socket.on("connect", () => {
-    console.log("Admin socket connected:", socket.id);
-    socket.emit("adminJoin", email || "admin");
-  });
-
-  socket.on("notification", (message) => {
-    if (callback) callback(message);
-  });
-
-  socket.on("connect_error", (err) => {
-    console.error("Socket error:", err.message);
-  });
-
-  return socket;
-};
-
-/* ================= DISCONNECT ================= */
 export const disconnectSocket = () => {
-  if (socket) {
-    socket.disconnect();
-    socket = null;
+  if (stompClient && stompClient.connected) {
+    stompClient.deactivate();
+    stompClient = null;
+    console.log("WebSocket Disconnected");
   }
 };

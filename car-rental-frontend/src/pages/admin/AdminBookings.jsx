@@ -5,7 +5,7 @@ import {
   rejectBooking,
 } from "../../services/adminBookingService";
 
-import { connectAdminSocket, disconnectSocket } from "../../context/useSocket";
+import { connectSocket, disconnectSocket } from "../../context/useSocket";
 import { toast } from "react-toastify";
 
 export default function AdminBookings() {
@@ -32,14 +32,14 @@ export default function AdminBookings() {
 
   /* ================= SOCKET ================= */
   useEffect(() => {
-    const socket = connectAdminSocket("admin", (message) => {
+    const socket = connectSocket(null, (message) => {
       toast.info(message);
       fetchBookings();
     });
 
-    return () => {
-      disconnectSocket();
-    };
+    // return () => {
+    //   disconnectSocket();
+    // };
   }, []);
 
   /* ================= ACTIONS ================= */

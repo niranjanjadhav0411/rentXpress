@@ -4,11 +4,8 @@ import {
   getRevenueData,
   getAllBookings,
 } from "../../services/adminBookingService";
-
-import { connectAdminSocket, disconnectSocket } from "../../context/useSocket";
-
+import { connectSocket, disconnectSocket } from "../../context/useSocket";
 import { toast } from "react-toastify";
-
 import {
   BarChart,
   Bar,
@@ -55,19 +52,17 @@ export default function AdminDashboard() {
     fetchData();
   }, []);
 
-  /* ================= REALTIME SOCKET ================= */
+  /* ================= SOCKET ================= */
 
   useEffect(() => {
-    const socket = connectAdminSocket("admin", (message) => {
+    const socket = connectSocket(null, (message) => {
       toast.info(message);
-
-      // refresh dashboard data
       fetchData();
     });
 
-    return () => {
-      disconnectSocket();
-    };
+    // return () => {
+    //   disconnectSocket();
+    // };
   }, []);
 
   /* ================= PIE DATA ================= */
@@ -110,8 +105,6 @@ export default function AdminDashboard() {
       {/* ================= CHARTS ================= */}
 
       <div className="grid md:grid-cols-2 gap-6">
-        {/* BAR CHART */}
-
         <div className="bg-gray-900 p-6 rounded-2xl shadow-xl">
           <h2 className="text-lg font-semibold mb-4 text-white">
             Monthly Revenue
@@ -125,14 +118,11 @@ export default function AdminDashboard() {
                 <XAxis dataKey="month" stroke="#888" />
                 <YAxis stroke="#888" />
                 <Tooltip />
-
                 <Bar dataKey="revenue" fill="#06b6d4" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
         </div>
-
-        {/* PIE CHART */}
 
         <div className="bg-gray-900 p-6 rounded-2xl shadow-xl">
           <h2 className="text-lg font-semibold mb-4 text-white">
@@ -207,7 +197,7 @@ export default function AdminDashboard() {
         )}
       </div>
 
-      {/* ================= PERFORMANCE MODAL ================= */}
+      {/* ================= MODAL ================= */}
 
       {selectedCar && performance && (
         <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
@@ -228,27 +218,11 @@ export default function AdminDashboard() {
 
             <div className="grid md:grid-cols-3 gap-6">
               <Card title="Total Bookings" value={performance.totalBookings} />
-
               <Card title="Confirmed" value={performance.confirmedBookings} />
-
               <Card
                 title="Total Revenue"
                 value={`₹${performance.totalRevenue}`}
               />
-            </div>
-
-            <div className="bg-gray-800 p-6 rounded-xl">
-              <h3 className="text-white mb-4">Monthly Revenue</h3>
-
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={performance.monthlyRevenue || []}>
-                  <XAxis dataKey="month" stroke="#888" />
-                  <YAxis stroke="#888" />
-                  <Tooltip />
-
-                  <Bar dataKey="revenue" fill="#06b6d4" />
-                </BarChart>
-              </ResponsiveContainer>
             </div>
           </div>
         </div>
@@ -257,13 +231,12 @@ export default function AdminDashboard() {
   );
 }
 
-/* ================= KPI CARD ================= */
+/* ================= CARD ================= */
 
 function Card({ title, value, color = "text-white" }) {
   return (
     <div className="bg-gray-900 p-6 rounded-2xl shadow-xl hover:shadow-2xl transition">
       <h3 className="text-gray-400 text-sm">{title}</h3>
-
       <p className={`text-2xl font-bold mt-2 ${color}`}>{value || 0}</p>
     </div>
   );

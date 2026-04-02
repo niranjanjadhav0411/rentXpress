@@ -6,48 +6,41 @@ import { toast } from "react-toastify";
 
 export default function NotificationBell({ user }) {
   const [notifications, setNotifications] = useState([]);
-  const [unread, setUnread] = useState(0);
   const [open, setOpen] = useState(false);
+
+  const unread = notifications.filter((n) => !n.readStatus).length;
 
   useEffect(() => {
     if (!user) return;
 
     fetchNotifications();
-    fetchUnreadCount();
 
-    connectSocket(user.email, (message) => {
+    connectSocket(user.email, user.role, (message) => {
       toast.success(message);
 
       const newNotification = {
         id: Date.now(),
-        message: message,
+        message,
         readStatus: false,
         createdAt: new Date().toISOString(),
       };
 
       setNotifications((prev) => [newNotification, ...prev]);
-
-      setUnread((prev) => prev + 1);
     });
   }, [user]);
+
+  // ================= FETCH =================
 
   const fetchNotifications = async () => {
     try {
       const res = await api.get("/notifications");
       setNotifications(res.data || []);
-    } catch (error) {
-      console.error("Notification fetch error:", error);
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  const fetchUnreadCount = async () => {
-    try {
-      const res = await api.get("/notifications/unread-count");
-      setUnread(res.data || 0);
-    } catch (error) {
-      console.error("Unread count error:", error);
-    }
-  };
+  // ================= MARK SINGLE =================
 
   const markAsRead = async (id) => {
     try {
@@ -56,14 +49,26 @@ export default function NotificationBell({ user }) {
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, readStatus: true } : n)),
       );
-
-      setUnread((prev) => Math.max(prev - 1, 0));
-    } catch (error) {
-      console.error("Mark read error:", error);
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  if (!user) return null;
+  // ================= MARK ALL =================
+
+  const markAllAsRead = async () => {
+    try {
+      const unreadItems = notifications.filter((n) => !n.readStatus);
+
+      await Promise.all(
+        unreadItems.map((n) => api.put(`/notifications/${n.id}/read`)),
+      );
+
+      setNotifications((prev) => prev.map((n) => ({ ...n, readStatus: true })));
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <div className="relative">
@@ -74,38 +79,51 @@ export default function NotificationBell({ user }) {
         <Bell size={22} />
 
         {unread > 0 && (
-          <span className="absolute -top-2 -right-2 bg-red-600 text-xs px-2 py-0.5 rounded-full">
+          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-semibold">
             {unread}
           </span>
         )}
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-4 w-80 bg-gray-900 border border-gray-800 rounded-xl shadow-xl z-50">
-          <div className="p-4 border-b border-gray-800 font-semibold text-white">
-            Notifications
+        <div className="absolute right-0 mt-4 w-96 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl z-50">
+          <div className="p-4 border-b border-gray-800 flex justify-between items-center">
+            <h2 className="text-white font-semibold text-lg">Notifications</h2>
+
+            {unread > 0 && (
+              <button
+                onClick={markAllAsRead}
+                className="text-xs text-cyan-400 hover:underline"
+              >
+                Mark all as read
+              </button>
+            )}
           </div>
 
-          <div className="max-h-80 overflow-y-auto">
-            {notifications.length === 0 && (
-              <div className="p-4 text-gray-500">No notifications</div>
-            )}
-
-            {notifications.map((n) => (
-              <div
-                key={n.id}
-                onClick={() => markAsRead(n.id)}
-                className={`p-4 text-sm cursor-pointer border-b border-gray-800 hover:bg-gray-800 ${
-                  !n.readStatus ? "bg-gray-800/40" : ""
-                }`}
-              >
-                {n.message}
-
-                <div className="text-xs text-gray-500 mt-1">
-                  {new Date(n.createdAt).toLocaleString()}
-                </div>
+          <div className="max-h-96 overflow-y-auto">
+            {notifications.length === 0 ? (
+              <div className="p-6 text-gray-400 text-center">
+                No notifications
               </div>
-            ))}
+            ) : (
+              notifications.map((n) => (
+                <div
+                  key={n.id}
+                  onClick={() => markAsRead(n.id)}
+                  className={`p-4 border-b border-gray-800 cursor-pointer transition ${
+                    !n.readStatus
+                      ? "bg-gray-800 hover:bg-gray-700"
+                      : "hover:bg-gray-800"
+                  }`}
+                >
+                  <p className="text-white text-sm font-medium">{n.message}</p>
+
+                  <p className="text-xs text-gray-400 mt-1">
+                    {new Date(n.createdAt).toLocaleString()}
+                  </p>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}

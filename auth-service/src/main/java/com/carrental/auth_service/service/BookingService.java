@@ -80,8 +80,7 @@ public class BookingService {
                 .build();
 
         Booking savedBooking = bookingRepository.save(booking);
-
-        // ✅ 🔥 FIRE EVENT (USER → ADMIN)
+        
         eventPublisher.publishEvent(new BookingCreatedEvent(savedBooking));
 
         return savedBooking;

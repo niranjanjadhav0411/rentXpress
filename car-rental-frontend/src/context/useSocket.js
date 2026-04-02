@@ -4,7 +4,7 @@ import { Client } from "@stomp/stompjs";
 let stompClient = null;
 let isConnecting = false;
 
-export const connectSocket = (email, callback) => {
+export const connectSocket = (email, role, callback) => {
   if (stompClient && stompClient.connected) {
     return stompClient;
   }
@@ -23,16 +23,18 @@ export const connectSocket = (email, callback) => {
       console.log("WebSocket Connected");
 
       // ================= USER TOPIC =================
-      if (email) {
+      if (email && role === "USER") {
         stompClient.subscribe(`/topic/user/${email}`, (msg) => {
           callback && callback(msg.body);
         });
       }
 
       // ================= ADMIN TOPIC =================
-      stompClient.subscribe("/topic/admin", (msg) => {
-        callback && callback(msg.body);
-      });
+      if (role === "ADMIN") {
+        stompClient.subscribe("/topic/admin", (msg) => {
+          callback && callback(msg.body);
+        });
+      }
     },
 
     onStompError: (frame) => {

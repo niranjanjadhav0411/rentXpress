@@ -81,10 +81,8 @@ export default function Navbar() {
               </>
             ) : (
               <div className="flex items-center gap-4">
-                {/* ✅ Notification Bell */}
                 <NotificationBell user={user} />
 
-                {/* Logout */}
                 <button
                   onClick={handleLogout}
                   className="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg font-medium transition"
@@ -133,10 +131,8 @@ export default function Navbar() {
               </>
             ) : (
               <div className="flex flex-col gap-3">
-                {/* ✅ Notification Bell */}
                 <NotificationBell user={user} />
 
-                {/* Logout */}
                 <button
                   onClick={handleLogout}
                   className="text-red-400 text-left"

@@ -169,7 +169,9 @@ export default function AdminDashboard() {
                     className="border-b border-gray-800 hover:bg-gray-800/40 transition"
                   >
                     <td className="py-3">
-                      {b.user?.name || b.user?.email || "N/A"}
+                      {b.user?.name && b.user.name !== "John Doe"
+                        ? b.user.name
+                        : b.user?.email || "N/A"}
                     </td>
 
                     <td>

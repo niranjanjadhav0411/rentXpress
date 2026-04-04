@@ -234,12 +234,12 @@ export default function AdminDashboard() {
 }
 
 /* ================= CARD ================= */
-
-function Card({ title, value, color = "text-white" }) {
-  return (
-    <div className="bg-gray-900 p-6 rounded-2xl shadow-xl hover:shadow-2xl transition">
-      <h3 className="text-gray-400 text-sm">{title}</h3>
-      <p className={`text-2xl font-bold mt-2 ${color}`}>{value || 0}</p>
-    </div>
-  );
-}
+//
+// function Card({ title, value, color = "text-white" }) {
+//   return (
+//     <div className="bg-gray-900 p-6 rounded-2xl shadow-xl hover:shadow-2xl transition">
+//       <h3 className="text-gray-400 text-sm">{title}</h3>
+//       <p className={`text-2xl font-bold mt-2 ${color}`}>{value || 0}</p>
+//     </div>
+//   );
+// }

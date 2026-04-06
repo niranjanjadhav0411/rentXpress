@@ -54,15 +54,15 @@ export default function AdminBookings() {
     }
   };
 
-  const handleReject = async (id) => {
-    try {
-      await rejectBooking(id);
-      toast.success("Booking Rejected ❌");
-      fetchBookings();
-    } catch {
-      toast.error("Reject failed");
-    }
-  };
+//   const handleReject = async (id) => {
+//     try {
+//       await rejectBooking(id);
+//       toast.success("Booking Rejected ❌");
+//       fetchBookings();
+//     } catch {
+//       toast.error("Reject failed");
+//     }
+//   };
 
   /* ================= FILTER ================= */
 

@@ -42,9 +42,9 @@ public class Booking {
     @Column(nullable = false)
     private double totalPrice;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private BookingStatus status;
+//    @Enumerated(EnumType.STRING)
+//    @Column(nullable = false)
+//    private BookingStatus status;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

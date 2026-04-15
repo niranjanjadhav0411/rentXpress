@@ -2,12 +2,22 @@ import CarTable from "../../components/admin/CarTable";
 
 export default function CarManagement() {
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-semibold mb-6 text-cyan-400">
-        Car Management
-      </h1>
-
-      <div className="bg-gray-900 rounded-2xl shadow p-4">
+    <div className="p-6 lg:p-8">
+      <div className="mb-8 animate-fade-up">
+        <p className="text-xs font-semibold tracking-[0.2em] uppercase text-[var(--gold)] mb-1">
+          Management
+        </p>
+        <h1
+          className="text-3xl font-bold text-[var(--text-primary)]"
+          style={{ fontFamily: "Syne, sans-serif" }}
+        >
+          Fleet Management
+        </h1>
+        <p className="text-sm text-[var(--text-muted)] mt-1">
+          Add, edit, and manage your vehicle inventory.
+        </p>
+      </div>
+      <div className="glass rounded-2xl p-6 animate-fade-up-1">
         <CarTable />
       </div>
     </div>

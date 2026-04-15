@@ -5,10 +5,11 @@ export const getAllCars = async () => {
     const response = await api.get("/cars");
     return response.data;
   } catch (error) {
-    console.error("Error fetching cars:", error.response?.data || error.message);
-    throw new Error(
-      error.response?.data?.message || "Failed to fetch cars"
+    console.error(
+      "Error fetching cars:",
+      error.response?.data || error.message,
     );
+    throw new Error(error.response?.data?.message || "Failed to fetch cars");
   }
 };
 
@@ -21,9 +22,10 @@ export const getCarById = async (id) => {
     const response = await api.get(`/cars/${id}`);
     return response.data;
   } catch (error) {
-    console.error(`Error fetching car with ID ${id}:`, error.response?.data || error.message);
-    throw new Error(
-      error.response?.data?.message || "Failed to fetch car"
+    console.error(
+      `Error fetching car with ID ${id}:`,
+      error.response?.data || error.message,
     );
+    throw new Error(error.response?.data?.message || "Failed to fetch car");
   }
 };

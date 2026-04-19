@@ -1,10 +1,145 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../services/api";
+
+const STATUS_CONFIG = {
+  PENDING: { label: "Pending", cls: "badge-pending", icon: "⏳" },
+  CONFIRMED: { label: "Confirmed", cls: "badge-confirmed", icon: "✓" },
+  REJECTED: { label: "Rejected", cls: "badge-rejected", icon: "✕" },
+  CANCELLED: { label: "Cancelled", cls: "badge-cancelled", icon: "–" },
+  COMPLETED: { label: "Completed", cls: "badge-completed", icon: "★" },
+};
+
+function BookingCard({ b, onCancel }) {
+  const status = STATUS_CONFIG[b.status] || STATUS_CONFIG.PENDING;
+
+  return (
+    <div className="glass rounded-2xl overflow-hidden hover:border-[var(--border-hover)] transition-all duration-300 group animate-fade-up">
+      <div className="grid md:grid-cols-[1fr_auto] gap-0">
+        {/* Main info */}
+        <div className="p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4 mb-5">
+            <div>
+              <div className="flex items-center gap-3 mb-1">
+                <h3
+                  className="text-lg font-bold text-[var(--text-primary)]"
+                  style={{ fontFamily: "Syne, sans-serif" }}
+                >
+                  {b.car?.brand} {b.car?.model}
+                </h3>
+                <span
+                  className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${status.cls}`}
+                >
+                  {status.icon} {status.label}
+                </span>
+              </div>
+              <p className="text-xs text-[var(--text-muted)]">
+                Booking #{b.id}
+              </p>
+            </div>
+            <div className="text-right">
+              <p
+                className="text-2xl font-bold text-gold"
+                style={{ fontFamily: "Syne, sans-serif" }}
+              >
+                ₹{b.totalPrice}
+              </p>
+              <p className="text-xs text-[var(--text-muted)]">total amount</p>
+            </div>
+          </div>
+
+          {/* Date & details */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-5">
+            <div className="bg-[var(--surface-2)] rounded-xl p-3">
+              <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide mb-1">
+                Pickup
+              </p>
+              <p className="text-sm font-medium text-[var(--text-primary)]">
+                {b.startDate}
+              </p>
+            </div>
+            <div className="bg-[var(--surface-2)] rounded-xl p-3">
+              <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide mb-1">
+                Return
+              </p>
+              <p className="text-sm font-medium text-[var(--text-primary)]">
+                {b.endDate}
+              </p>
+            </div>
+            {b.totalDays && (
+              <div className="bg-[var(--surface-2)] rounded-xl p-3">
+                <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide mb-1">
+                  Duration
+                </p>
+                <p className="text-sm font-medium text-[var(--text-primary)]">
+                  {b.totalDays} day{b.totalDays !== 1 ? "s" : ""}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Location */}
+          {(b.location || b.destination) && (
+            <div className="flex flex-wrap gap-4 pt-4 border-t border-[var(--border)] text-sm text-[var(--text-muted)]">
+              {b.location && (
+                <div className="flex items-center gap-1.5">
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="var(--gold)"
+                    strokeWidth="2"
+                  >
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  From: {b.location}
+                </div>
+              )}
+              {b.destination && (
+                <div className="flex items-center gap-1.5">
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="var(--gold)"
+                    strokeWidth="2"
+                  >
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                  To: {b.destination}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Side actions */}
+        {b.status === "PENDING" && (
+          <div className="md:border-l border-t md:border-t-0 border-[var(--border)] p-6 flex md:flex-col items-center justify-center gap-3">
+            <button
+              onClick={() => onCancel(b.id)}
+              className="px-5 py-2.5 rounded-xl text-sm font-medium text-red-400 border border-red-500/30 hover:bg-red-500/10 transition-all duration-200 whitespace-nowrap"
+            >
+              Cancel Booking
+            </button>
+            <p className="text-[10px] text-[var(--text-muted)] text-center max-w-[100px]">
+              Cancellation is free
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function MyBookings() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("ALL");
 
   useEffect(() => {
     fetchBookings();
@@ -13,12 +148,9 @@ export default function MyBookings() {
   const fetchBookings = async () => {
     try {
       const res = await api.get("/bookings/my");
-
-      // ✅ Sort newest first
       const sorted = (res.data || []).sort((a, b) => b.id - a.id);
-
       setBookings(sorted);
-    } catch (err) {
+    } catch {
       toast.error("Failed to load bookings");
     } finally {
       setLoading(false);
@@ -28,9 +160,7 @@ export default function MyBookings() {
   const cancelBooking = async (id) => {
     try {
       await api.put(`/bookings/${id}/cancel`);
-
       toast.success("Booking cancelled successfully");
-
       setBookings((prev) =>
         prev.map((b) => (b.id === id ? { ...b, status: "CANCELLED" } : b)),
       );
@@ -39,97 +169,130 @@ export default function MyBookings() {
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "PENDING":
-        return "bg-yellow-500/20 text-yellow-400";
-      case "CONFIRMED":
-        return "bg-green-500/20 text-green-400";
-      case "REJECTED":
-        return "bg-red-500/20 text-red-400";
-      case "CANCELLED":
-        return "bg-gray-500/20 text-gray-400";
-      default:
-        return "bg-gray-500/20 text-gray-300";
-    }
-  };
+  const statusTabs = ["ALL", "PENDING", "CONFIRMED", "CANCELLED", "REJECTED"];
+  const filtered =
+    filter === "ALL" ? bookings : bookings.filter((b) => b.status === filter);
 
   if (loading) {
     return (
-      <p className="text-center py-20 text-gray-400">Loading bookings...</p>
-    );
-  }
-
-  if (bookings.length === 0) {
-    return (
-      <div className="text-center py-20 text-gray-400">
-        <p className="text-xl">No bookings yet 🚗</p>
-        <p className="text-sm mt-2">Start by exploring available cars.</p>
+      <div className="min-h-[calc(100vh-72px)] py-12 px-6">
+        <div className="max-w-4xl mx-auto space-y-4">
+          <div className="skeleton h-10 w-48 mb-8" />
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="skeleton h-40 rounded-2xl" />
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
-    <section className="max-w-5xl mx-auto px-4 py-10">
-      <h1 className="text-3xl font-bold text-cyan-400 mb-8">My Bookings</h1>
+    <div className="min-h-[calc(100vh-72px)] py-12 px-6">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="mb-8 animate-fade-up">
+          <p className="text-xs font-semibold tracking-[0.2em] uppercase text-[var(--gold)] mb-2">
+            My Account
+          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <h1
+              className="text-4xl font-bold text-[var(--text-primary)]"
+              style={{ fontFamily: "Syne, sans-serif" }}
+            >
+              My Bookings
+            </h1>
+            <Link
+              to="/cars"
+              className="btn-gold px-6 py-2.5 text-sm inline-flex items-center gap-2 self-start"
+            >
+              + New Booking
+            </Link>
+          </div>
+        </div>
 
-      <div className="space-y-6">
-        {bookings.map((b) => (
-          <div
-            key={b.id}
-            className="bg-gray-900 p-6 rounded-2xl shadow-lg border border-gray-800 hover:border-cyan-500/40 transition duration-300"
-          >
-            {/* Header */}
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="text-xl font-semibold text-white">
-                  {b.car?.brand} {b.car?.model}
-                </h3>
-
-                <p className="text-gray-400 text-sm mt-1">
-                  {b.startDate} → {b.endDate}
-                </p>
-              </div>
-
-              <span
-                className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                  b.status,
-                )}`}
-              >
-                {b.status}
-              </span>
-            </div>
-
-            {/* Price */}
-            <div className="mt-4 flex justify-between items-center">
-              <div>
-                <p className="text-gray-400 text-sm">Total Price</p>
-                <p className="text-yellow-400 font-bold text-lg">
-                  ₹{b.totalPrice}
-                </p>
-              </div>
-
-              {/* Only Pending can cancel */}
-              {b.status === "PENDING" && (
-                <button
-                  onClick={() => cancelBooking(b.id)}
-                  className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm font-medium transition"
-                >
-                  Cancel
-                </button>
+        {/* Tabs */}
+        <div className="flex flex-wrap gap-2 mb-8 animate-fade-up-1">
+          {statusTabs.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setFilter(tab)}
+              className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 ${
+                filter === tab
+                  ? "bg-[var(--gold)] text-[var(--surface)]"
+                  : "border border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--border-hover)] hover:text-[var(--text-primary)]"
+              }`}
+              style={{
+                fontFamily: "Syne, sans-serif",
+                letterSpacing: "0.05em",
+              }}
+            >
+              {tab}
+              {tab !== "ALL" && (
+                <span className="ml-1.5 opacity-60">
+                  {bookings.filter((b) => b.status === tab).length}
+                </span>
               )}
-            </div>
+            </button>
+          ))}
+        </div>
 
-            {/* Optional Enquiry Details (if exists) */}
-            {(b.location || b.destination) && (
-              <div className="mt-4 text-sm text-gray-400 border-t border-gray-800 pt-4">
-                {b.location && <p>Pickup: {b.location}</p>}
-                {b.destination && <p>Destination: {b.destination}</p>}
-              </div>
+        {/* Empty */}
+        {filtered.length === 0 && (
+          <div className="text-center py-24 animate-fade-up">
+            <div className="w-16 h-16 rounded-2xl bg-[var(--surface-2)] flex items-center justify-center mx-auto mb-5">
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="var(--text-muted)"
+                strokeWidth="1.5"
+              >
+                <rect x="3" y="4" width="18" height="18" rx="2" />
+                <path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01" />
+              </svg>
+            </div>
+            <h3
+              className="text-xl font-semibold text-[var(--text-primary)] mb-2"
+              style={{ fontFamily: "Syne, sans-serif" }}
+            >
+              {filter === "ALL"
+                ? "No bookings yet"
+                : `No ${filter.toLowerCase()} bookings`}
+            </h3>
+            <p className="text-[var(--text-muted)] text-sm mb-6">
+              {filter === "ALL"
+                ? "Start by exploring our premium fleet."
+                : "Try a different filter."}
+            </p>
+            {filter === "ALL" && (
+              <Link
+                to="/cars"
+                className="btn-gold px-8 py-3 text-sm inline-flex items-center gap-2"
+              >
+                Browse Fleet
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                >
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </Link>
             )}
           </div>
-        ))}
+        )}
+
+        {/* Bookings */}
+        <div className="space-y-5">
+          {filtered.map((b) => (
+            <BookingCard key={b.id} b={b} onCancel={cancelBooking} />
+          ))}
+        </div>
       </div>
-    </section>
+    </div>
   );
 }

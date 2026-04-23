@@ -91,6 +91,7 @@ export default function Cars() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="input-premium pl-9 text-sm w-64"
+                  style={{ paddingLeft: "2.10rem" }}
                 />
               </div>
               <select

@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -16,9 +16,14 @@ import AdminLayout from "./layout/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 
 export default function App() {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith("/admin");
+
   return (
     <>
-      <Navbar />
+      {/* Hide Navbar on all admin routes */}
+      {!isAdminRoute && <Navbar />}
+
       <Routes>
         {/* PUBLIC + USER ROUTES */}
         <Route
@@ -32,7 +37,6 @@ export default function App() {
                   <Route path="/register" element={<Register />} />
                   <Route path="/cars" element={<Cars />} />
                   <Route path="/cars/:id" element={<CarDetails />} />
-
                   <Route
                     path="/booking/:carId"
                     element={
@@ -41,7 +45,6 @@ export default function App() {
                       </ProtectedRoute>
                     }
                   />
-
                   <Route
                     path="/my-bookings"
                     element={
@@ -56,7 +59,7 @@ export default function App() {
           }
         />
 
-        {/* ADMIN ROUTES (Separate Layout) */}
+        {/* ADMIN ROUTES  */}
         <Route
           path="/admin/*"
           element={

@@ -67,24 +67,24 @@ public class AdminController {
 
 
     // DASHBOARD STATISTICS (Optimized)
-//
-//    @GetMapping("/stats")
-//    public ResponseEntity<Map<String, Object>> getStats() {
-//
-//        Double totalRevenue = bookingRepository.getTotalRevenue();
-//        long totalBookings = bookingRepository.count();
-//        long pending = bookingRepository.countByStatus(BookingStatus.PENDING);
-//        long confirmed = bookingRepository.countByStatus(BookingStatus.CONFIRMED);
-//
-//        return ResponseEntity.ok(
-//                Map.of(
-//                        "totalRevenue", totalRevenue != null ? totalRevenue : 0.0,
-//                        "totalBookings", totalBookings,
-//                        "pending", pending,
-//                        "confirmed", confirmed
-//                )
-//        );
-//    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Object>> getStats() {
+
+        Double totalRevenue = bookingRepository.getTotalRevenue();
+        long totalBookings = bookingRepository.count();
+        long pending = bookingRepository.countByStatus(BookingStatus.PENDING);
+        long confirmed = bookingRepository.countByStatus(BookingStatus.CONFIRMED);
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "totalRevenue", totalRevenue != null ? totalRevenue : 0.0,
+                        "totalBookings", totalBookings,
+                        "pending", pending,
+                        "confirmed", confirmed
+                )
+        );
+    }
 
 
     // DTO MAPPING

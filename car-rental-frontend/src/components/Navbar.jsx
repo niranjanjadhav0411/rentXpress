@@ -41,7 +41,6 @@ export default function Navbar() {
       >
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex items-center justify-between h-[72px]">
-            {/* Logo */}
             <NavLink to="/" className="flex items-center gap-3 group">
               <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[var(--gold)] to-[var(--gold-dim)] flex items-center justify-center shadow-lg group-hover:shadow-[var(--gold)]/30 transition-shadow">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -67,7 +66,6 @@ export default function Navbar() {
               </span>
             </NavLink>
 
-            {/* Desktop Nav */}
             <nav className="hidden md:flex items-center gap-8">
               <NavLink to="/" end className={navLinkClass}>
                 {({ isActive }) => (
@@ -115,7 +113,6 @@ export default function Navbar() {
               )}
             </nav>
 
-            {/* Desktop Actions */}
             <div className="hidden md:flex items-center gap-3">
               {!user ? (
                 <>
@@ -156,7 +153,6 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* Mobile Toggle */}
             <button
               onClick={() => setMenuOpen(!menuOpen)}
               className="md:hidden w-10 h-10 flex flex-col items-center justify-center gap-[5px] rounded-lg hover:bg-[var(--surface-2)] transition"
@@ -175,7 +171,6 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Menu */}
         <div
           className={`md:hidden transition-all duration-300 overflow-hidden ${menuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}
         >
@@ -245,7 +240,7 @@ export default function Navbar() {
           </div>
         </div>
       </header>
-      {/* Spacer */}
+
       <div className="h-[72px]" />
     </>
   );

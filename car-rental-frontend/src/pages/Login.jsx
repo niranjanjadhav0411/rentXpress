@@ -93,7 +93,6 @@ export default function Login() {
             </p>
           </div>
 
-          {/* Error */}
           {error && (
             <div
               className="mb-5 flex items-start gap-3 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm"

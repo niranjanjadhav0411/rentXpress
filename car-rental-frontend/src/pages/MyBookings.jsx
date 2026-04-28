@@ -236,7 +236,6 @@ export default function MyBookings() {
           ))}
         </div>
 
-        {/* Empty */}
         {filtered.length === 0 && (
           <div className="text-center py-24 animate-fade-up">
             <div className="w-16 h-16 rounded-2xl bg-[var(--surface-2)] flex items-center justify-center mx-auto mb-5">
@@ -286,7 +285,6 @@ export default function MyBookings() {
           </div>
         )}
 
-        {/* Bookings */}
         <div className="space-y-5">
           {filtered.map((b) => (
             <BookingCard key={b.id} b={b} onCancel={cancelBooking} />

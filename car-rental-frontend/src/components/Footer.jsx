@@ -5,7 +5,6 @@ export default function Footer() {
     <footer className="border-t border-[var(--border)] bg-[var(--surface-1)] mt-auto">
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-          {/* Brand */}
           <div>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--gold)] to-[var(--gold-dim)] flex items-center justify-center">
@@ -35,7 +34,6 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* Links */}
           <div>
             <p
               className="text-xs font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-4"
@@ -61,7 +59,6 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Contact */}
           <div>
             <p
               className="text-xs font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-4"

@@ -1,7 +1,6 @@
 export default function StatCard({ title, value, color = "", icon, change }) {
   return (
     <div className="glass rounded-2xl p-6 hover:border-[var(--border-hover)] transition-all duration-300 group relative overflow-hidden">
-      {/* Background glow */}
       <div
         className="absolute top-0 right-0 w-24 h-24 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-2xl"
         style={{ background: color ? `${color}15` : "rgba(201,168,76,0.08)" }}

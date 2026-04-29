@@ -10,7 +10,6 @@ const navItems = [
 export default function Sidebar({ open, setOpen }) {
   return (
     <>
-      {/* Mobile overlay */}
       {open && (
         <div
           onClick={() => setOpen(false)}

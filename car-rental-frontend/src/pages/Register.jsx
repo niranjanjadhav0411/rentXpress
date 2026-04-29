@@ -202,7 +202,6 @@ export default function Register() {
                 </button>
               </div>
 
-              {/* Password strength */}
               {password && (
                 <div className="mt-2 flex items-center gap-2">
                   <div className="flex-1 flex gap-1">

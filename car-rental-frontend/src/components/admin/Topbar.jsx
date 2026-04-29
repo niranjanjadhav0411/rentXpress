@@ -10,7 +10,6 @@ export default function Topbar({ setOpen, toggleTheme, theme }) {
 
   return (
     <header className="flex items-center justify-between px-6 h-[64px] bg-[var(--surface-1)] border-b border-[var(--border)] relative z-20">
-      {/* Left */}
       <div className="flex items-center gap-4">
         <button
           onClick={() => setOpen(true)}
@@ -31,9 +30,7 @@ export default function Topbar({ setOpen, toggleTheme, theme }) {
         </div>
       </div>
 
-      {/* Right */}
       <div className="flex items-center gap-3">
-        {/* Theme toggle */}
         <button
           onClick={toggleTheme}
           className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-[var(--surface-2)] transition text-[var(--text-secondary)] hover:text-[var(--gold)]"
@@ -44,7 +41,6 @@ export default function Topbar({ setOpen, toggleTheme, theme }) {
 
         <div className="w-px h-5 bg-[var(--border)]" />
 
-        {/* Profile dropdown */}
         <div className="relative">
           <button
             onClick={() => setDropdown(!dropdown)}

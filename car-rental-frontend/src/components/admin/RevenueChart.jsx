@@ -9,7 +9,6 @@ import {
 } from "recharts";
 
 export default function RevenueChart({ data }) {
-  // 🛡 SAFETY CHECK
   const safeData = Array.isArray(data)
     ? data.map((item) => ({
         month: item.month,

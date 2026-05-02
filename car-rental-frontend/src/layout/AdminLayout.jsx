@@ -3,29 +3,27 @@ import Sidebar from "../components/admin/Sidebar";
 import Topbar from "../components/admin/Topbar";
 import { Outlet } from "react-router-dom";
 
+function applyTheme(theme) {
+  const root = document.documentElement;
+  // Remove both, then add the correct one
+  root.classList.remove("dark", "light");
+  root.classList.add(theme);
+}
+
 export default function AdminLayout() {
   const [open, setOpen] = useState(false);
-  const [theme, setTheme] = useState("dark");
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem("theme") || "dark";
+  });
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") || "dark";
-    setTheme(savedTheme);
-    if (savedTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, []);
+    applyTheme(theme);
+  }, [theme]);
 
   const toggleTheme = () => {
     const newTheme = theme === "dark" ? "light" : "dark";
     setTheme(newTheme);
     localStorage.setItem("theme", newTheme);
-    if (newTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
   };
 
   return (

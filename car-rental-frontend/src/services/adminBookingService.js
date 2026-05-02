@@ -1,10 +1,10 @@
 import api from "./api";
 
 // Admin Stats
-// export const getAdminStats = async () => {
-//   const res = await api.get("/bookings/admin/stats");
-//   return res.data;
-// };
+export const getAdminStats = async () => {
+  const res = await api.get("/bookings/admin/stats");
+  return res.data;
+};
 
 // Revenue Admin
 export const getRevenueData = async () => {

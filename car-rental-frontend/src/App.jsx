@@ -21,7 +21,6 @@ export default function App() {
 
   return (
     <>
-      {/* Hide Navbar on all admin routes */}
       {!isAdminRoute && <Navbar />}
 
       <Routes>
@@ -29,7 +28,13 @@ export default function App() {
         <Route
           path="/*"
           element={
-            <div className="min-h-screen flex flex-col bg-gray-950 text-white">
+            <div
+              className="min-h-screen flex flex-col"
+              style={{
+                background: "var(--surface)",
+                color: "var(--text-primary)",
+              }}
+            >
               <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <Routes>
                   <Route path="/" element={<Home />} />
@@ -59,7 +64,7 @@ export default function App() {
           }
         />
 
-        {/* ADMIN ROUTES  */}
+        {/* ADMIN ROUTES */}
         <Route
           path="/admin/*"
           element={
@@ -74,7 +79,16 @@ export default function App() {
         </Route>
       </Routes>
 
-      <ToastContainer position="top-right" autoClose={2000} theme="dark" />
+      <ToastContainer
+        position="top-right"
+        autoClose={2500}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        theme="colored"
+        style={{ fontSize: 14 }}
+      />
     </>
   );
 }

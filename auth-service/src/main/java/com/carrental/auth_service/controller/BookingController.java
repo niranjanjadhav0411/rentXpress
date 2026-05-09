@@ -187,7 +187,6 @@ public class BookingController {
         booking.setStatus(BookingStatus.CONFIRMED);
         Booking saved = bookingRepository.save(booking);
 
-        // 🔥 Publish event
         eventPublisher.publishEvent(new BookingApprovedEvent(saved));
 
         return ResponseEntity.ok("Booking approved successfully");

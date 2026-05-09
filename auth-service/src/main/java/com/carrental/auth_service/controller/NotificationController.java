@@ -16,20 +16,20 @@ public class NotificationController {
     private final NotificationRepository notificationRepository;
 
     // ================= GET ALL NOTIFICATIONS =================
-//    @GetMapping
-//    public ResponseEntity<?> getNotifications(Authentication authentication) {
-//
-//        if (authentication == null) {
-//            return ResponseEntity.status(401).body("Unauthorized");
-//        }
-//
-//        String email = authentication.getName();
-//
-//        return ResponseEntity.ok(
-//                notificationRepository
-//                        .findByRecipientEmailOrderByCreatedAtDesc(email)
-//        );
-//    }
+    @GetMapping
+    public ResponseEntity<?> getNotifications(Authentication authentication) {
+
+        if (authentication == null) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+
+        String email = authentication.getName();
+
+        return ResponseEntity.ok(
+                notificationRepository
+                        .findByRecipientEmailOrderByCreatedAtDesc(email)
+        );
+    }
 
     // ================= GET UNREAD COUNT =================
     @GetMapping("/unread-count")

@@ -24,42 +24,38 @@ export default function App() {
       {!isAdminRoute && <Navbar />}
 
       <Routes>
-        {/* PUBLIC + USER ROUTES */}
+        {/* PUBLIC + USER ROUTES — NO container wrapper here,
+            each page manages its own width/padding */}
         <Route
           path="/*"
           element={
             <div
               className="min-h-screen flex flex-col"
-              style={{
-                background: "var(--surface)",
-                color: "var(--text-primary)",
-              }}
+              style={{ background: "var(--surface)", color: "var(--text-primary)" }}
             >
-              <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                  <Route path="/cars" element={<Cars />} />
-                  <Route path="/cars/:id" element={<CarDetails />} />
-                  <Route
-                    path="/booking/:carId"
-                    element={
-                      <ProtectedRoute>
-                        <Booking />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/my-bookings"
-                    element={
-                      <ProtectedRoute>
-                        <MyBookings />
-                      </ProtectedRoute>
-                    }
-                  />
-                </Routes>
-              </main>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/cars" element={<Cars />} />
+                <Route path="/cars/:id" element={<CarDetails />} />
+                <Route
+                  path="/booking/:carId"
+                  element={
+                    <ProtectedRoute>
+                      <Booking />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/my-bookings"
+                  element={
+                    <ProtectedRoute>
+                      <MyBookings />
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
             </div>
           }
         />

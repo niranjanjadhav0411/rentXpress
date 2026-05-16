@@ -167,6 +167,7 @@ export default function AdminBookings() {
                 type="text"
                 placeholder="Search customer, email, car..."
                 className="input-premium pl-9 text-sm w-64"
+                style={{ paddingLeft: "2.10rem" }}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />

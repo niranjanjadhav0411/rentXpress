@@ -9,7 +9,6 @@ export const createBooking = async (bookingData) => {
       typeof error.response?.data === "string"
         ? error.response.data
         : error.response?.data?.message;
-
     throw new Error(backendMessage || "Booking failed");
   }
 };
@@ -19,13 +18,7 @@ export const getMyBookings = async () => {
     const res = await api.get("/bookings/my");
     return res.data;
   } catch (error) {
-    console.error(
-      "Error fetching bookings:",
-      error.response?.data || error.message,
-    );
-    throw new Error(
-      error.response?.data?.message || "Failed to fetch bookings",
-    );
+    throw new Error(error.response?.data?.message || "Failed to fetch bookings");
   }
 };
 
@@ -34,12 +27,6 @@ export const cancelBooking = async (bookingId) => {
     const res = await api.put(`/bookings/${bookingId}/cancel`);
     return res.data;
   } catch (error) {
-    console.error(
-      "Error cancelling booking:",
-      error.response?.data || error.message,
-    );
-    throw new Error(
-      error.response?.data?.message || "Failed to cancel booking",
-    );
+    throw new Error(error.response?.data?.message || "Failed to cancel booking");
   }
 };

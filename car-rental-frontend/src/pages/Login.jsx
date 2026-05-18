@@ -45,7 +45,7 @@ export default function Login() {
       if (authResponse.role === "ADMIN") {
         navigate("/admin", { replace: true });
       } else {
-        navigate("/cars", { replace: true });
+        navigate("/", { replace: true });
       }
     } catch (err) {
       const msg =

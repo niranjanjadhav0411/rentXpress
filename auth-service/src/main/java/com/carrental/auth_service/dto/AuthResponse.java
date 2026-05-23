@@ -14,7 +14,7 @@ public class AuthResponse {
         this.role = role;
     }
 
-    // ===== GETTERS & SETTERS =====
+    // GETTERS & SETTERS
     public String getAccessToken() { return accessToken; }
     public void setAccessToken(String accessToken) { this.accessToken = accessToken; }
 

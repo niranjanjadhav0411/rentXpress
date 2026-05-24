@@ -30,7 +30,7 @@ public class AuthService {
         this.jwtService = jwtService;
     }
 
-    // ================= REGISTER =================
+    // REGISTER
     public AuthResponse register(RegisterRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail().toLowerCase())) {
@@ -60,7 +60,7 @@ public class AuthService {
         );
     }
 
-    // ================= LOGIN =================
+    // LOGIN
     public AuthResponse login(LoginRequest request) {
 
         User user = userRepository.findByEmail(request.getEmail().toLowerCase())
@@ -89,7 +89,7 @@ public class AuthService {
         );
     }
 
-    // ================= CREATE DEFAULT ADMIN =================
+    // CREATE DEFAULT ADMIN
     public void createAdminIfNotExists() {
 
         Optional<User> adminOpt = userRepository.findByEmail("admin@carrental.com");

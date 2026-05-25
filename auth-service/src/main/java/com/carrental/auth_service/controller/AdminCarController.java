@@ -21,7 +21,7 @@ public class AdminCarController {
 
     private final CarRepository carRepository;
 
-    // ================= ADD CAR =================
+    // ADD CAR
     @PostMapping(consumes = "multipart/form-data")
     public ResponseEntity<Car> addCar(
             @RequestParam String brand,
@@ -45,7 +45,7 @@ public class AdminCarController {
         return ResponseEntity.status(HttpStatus.CREATED).body(savedCar);
     }
 
-    // ================= UPDATE CAR =================
+    // UPDATE CAR
     @PutMapping(value = "/{id}", consumes = "multipart/form-data")
     public ResponseEntity<Car> updateCar(
             @PathVariable Long id,
@@ -78,7 +78,7 @@ public class AdminCarController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // ================= DELETE CAR =================
+    // DELETE CAR
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCar(@PathVariable Long id) {
 
@@ -90,7 +90,7 @@ public class AdminCarController {
         return ResponseEntity.noContent().build();
     }
 
-    // ================= HELPER =================
+    //  HELPER
     private String convertToBase64(MultipartFile file) throws IOException {
         return "data:" + file.getContentType() + ";base64," +
                 Base64.getEncoder().encodeToString(file.getBytes());

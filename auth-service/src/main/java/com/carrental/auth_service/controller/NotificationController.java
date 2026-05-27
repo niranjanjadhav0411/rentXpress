@@ -15,7 +15,7 @@ public class NotificationController {
 
     private final NotificationRepository notificationRepository;
 
-    // ================= GET ALL NOTIFICATIONS =================
+    //  GET ALL NOTIFICATIONS
     @GetMapping
     public ResponseEntity<?> getNotifications(Authentication authentication) {
 
@@ -31,7 +31,7 @@ public class NotificationController {
         );
     }
 
-    // ================= GET UNREAD COUNT =================
+    //  GET UNREAD COUNT
     @GetMapping("/unread-count")
     public ResponseEntity<?> getUnreadCount(Authentication authentication) {
 
@@ -48,7 +48,7 @@ public class NotificationController {
         return ResponseEntity.ok(count);
     }
 
-    // ================= MARK AS READ =================
+    // MARK AS READ
     @PutMapping("/{id}/read")
     public ResponseEntity<?> markAsRead(@PathVariable Long id) {
 

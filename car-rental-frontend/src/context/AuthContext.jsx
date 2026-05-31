@@ -4,7 +4,7 @@ import api from "../services/api";
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user,    setUser]    = useState(null);
   const [loading, setLoading] = useState(true);
 
   const clearAuth = useCallback(() => {
@@ -13,27 +13,53 @@ export const AuthProvider = ({ children }) => {
     delete api.defaults.headers.common["Authorization"];
   }, []);
 
-  // Validate token with backend before restoring session
+  // ── Restore session on page load/refresh
   useEffect(() => {
     const restoreAuth = async () => {
       try {
-        const storedUser = localStorage.getItem("user");
-        if (!storedUser) { setLoading(false); return; }
+        const stored = localStorage.getItem("user");
+        if (!stored) { setLoading(false); return; }
 
-        const parsedUser = JSON.parse(storedUser);
-        if (!parsedUser?.accessToken) { clearAuth(); setLoading(false); return; }
+        let parsed;
+        try {
+          parsed = JSON.parse(stored);
+        } catch {
+          // Corrupted localStorage — clear and start fresh
+          clearAuth();
+          setLoading(false);
+          return;
+        }
 
-        // Set header first so the validation request is authenticated
-        api.defaults.headers.common["Authorization"] = `Bearer ${parsedUser.accessToken}`;
+        if (!parsed?.accessToken) {
+          clearAuth();
+          setLoading(false);
+          return;
+        }
 
-        // Validate token against backend
-        await api.get("/auth/validate");
+        // Set auth header so the validate call is authenticated
+        api.defaults.headers.common["Authorization"] = `Bearer ${parsed.accessToken}`;
 
-        // Token is valid — restore session
-        setUser(parsedUser);
+        try {
+          // Validate token with backend
+          await api.get("/auth/validate");
+          // Token valid — restore session
+          setUser(parsed);
+        } catch (err) {
+          const status = err?.response?.status;
+
+          if (status === 401 || status === 403) {
+            // Token is genuinely expired/invalid — log out
+            clearAuth();
+          } else {
+            setUser(parsed);
+          }
+        }
       } catch {
-        // Token invalid/expired — clear everything, start fresh
-        clearAuth();
+        // Unexpected error — keep session to avoid false logout
+        try {
+          const stored = localStorage.getItem("user");
+          if (stored) setUser(JSON.parse(stored));
+        } catch { /* nothing */ }
       } finally {
         setLoading(false);
       }
@@ -42,7 +68,7 @@ export const AuthProvider = ({ children }) => {
     restoreAuth();
   }, [clearAuth]);
 
-  // Listen for 401 events dispatched by the api interceptor
+  // ── Listen for 401 events from api.js interceptor
   useEffect(() => {
     const handle = () => clearAuth();
     window.addEventListener("auth:logout", handle);
@@ -51,9 +77,9 @@ export const AuthProvider = ({ children }) => {
 
   const login = (authResponse) => {
     const authUser = {
-      email: authResponse.email,
-      name: authResponse.name,
-      role: authResponse.role,
+      email:       authResponse.email,
+      name:        authResponse.name,
+      role:        authResponse.role,
       accessToken: authResponse.accessToken,
     };
     localStorage.setItem("user", JSON.stringify(authUser));
@@ -61,9 +87,7 @@ export const AuthProvider = ({ children }) => {
     setUser(authUser);
   };
 
-  const logout = () => {
-    clearAuth();
-  };
+  const logout = () => clearAuth();
 
   return (
     <AuthContext.Provider value={{ user, loading, isAuthenticated: !!user, login, logout }}>
@@ -73,7 +97,7 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used within AuthProvider");
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
 };

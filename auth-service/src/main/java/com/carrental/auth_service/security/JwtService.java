@@ -26,7 +26,7 @@ public class JwtService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    // ================= GENERATE TOKEN =================
+    // GENERATE TOKEN
     public String generateToken(UserDetails userDetails) {
 
         List<String> roles = userDetails.getAuthorities()
@@ -45,12 +45,12 @@ public class JwtService {
                 .compact();
     }
 
-    // ================= EXTRACT EMAIL =================
+    // EXTRACT EMAIL
     public String extractEmail(String token) {
         return extractClaims(token).getSubject();
     }
 
-    // ================= VALIDATE TOKEN =================
+    //  VALIDATE TOKEN
     public boolean isTokenValid(String token, User user) {
         String email = extractEmail(token);
         return email.equals(user.getEmail()) && !isTokenExpired(token);

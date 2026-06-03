@@ -31,7 +31,7 @@ public class BookingController {
     private final CarRepository carRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    // ================= CREATE BOOKING =================
+    // CREATE BOOKING
     @PostMapping
     public ResponseEntity<?> createBooking(
             @RequestBody BookingRequest request,
@@ -102,7 +102,7 @@ public class BookingController {
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
-    // ================= MY BOOKINGS =================
+    //  MY BOOKINGS
     @GetMapping("/my")
     public ResponseEntity<?> myBookings(Authentication authentication) {
 
@@ -116,7 +116,7 @@ public class BookingController {
         return ResponseEntity.ok(bookingRepository.findByUser(user));
     }
 
-    // ================= CANCEL BOOKING =================
+    //  CANCEL BOOKING
     @PutMapping("/{id}/cancel")
     public ResponseEntity<?> cancelBooking(
             @PathVariable Long id,
@@ -145,7 +145,7 @@ public class BookingController {
         return ResponseEntity.ok("Booking cancelled successfully");
     }
 
-    // ================= ADMIN - GET ALL BOOKINGS =================
+    // ADMIN - GET ALL BOOKINGS
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin")
     public ResponseEntity<?> getAllBookingsForAdmin(
@@ -171,7 +171,7 @@ public class BookingController {
         );
     }
 
-    // ================= ADMIN - APPROVE =================
+    //  ADMIN - APPROVE
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/admin/{id}/approve")
     public ResponseEntity<?> approveBooking(@PathVariable Long id) {
@@ -192,7 +192,7 @@ public class BookingController {
         return ResponseEntity.ok("Booking approved successfully");
     }
 
-    // ================= ADMIN - REJECT =================
+    // ADMIN - REJECT
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/admin/{id}/reject")
     public ResponseEntity<?> rejectBooking(@PathVariable Long id) {
@@ -214,7 +214,7 @@ public class BookingController {
         return ResponseEntity.ok("Booking rejected successfully");
     }
 
-    // ================= ADMIN - STATS =================
+    // ADMIN - STATS
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/stats")
     public ResponseEntity<?> getAdminStats() {
@@ -245,7 +245,7 @@ public class BookingController {
         );
     }
 
-    // ================= ADMIN - REVENUE =================
+    // ADMIN - REVENUE
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/revenue")
     public ResponseEntity<?> getRevenueData() {
@@ -267,7 +267,7 @@ public class BookingController {
         return ResponseEntity.ok(result);
     }
 
-    // ================= ADMIN - TOP CAR =================
+    // ADMIN - TOP CAR
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/top-car")
     public ResponseEntity<?> getTopPerformingCar() {

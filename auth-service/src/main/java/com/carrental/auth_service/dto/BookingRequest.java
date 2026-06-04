@@ -7,9 +7,7 @@ import java.time.LocalDate;
 public class BookingRequest {
 
     private Long carId;
-
     private LocalDate startDate;
-
     private LocalDate endDate;
 
     private String name;
@@ -20,5 +18,8 @@ public class BookingRequest {
     private String pickupAddress;
     private Integer totalDays;
 
-
+    // Payment fields
+    private String fuelPreference;
+    private String paymentMethod;
+    private String txnId;
 }

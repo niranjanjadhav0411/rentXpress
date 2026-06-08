@@ -66,16 +66,14 @@ public class Booking {
     @Column(columnDefinition = "TEXT")
     private String pickupAddress;
 
-
+    // ── New payment + fuel fields
+    private String fuelPreference;
+    private String paymentMethod;
+    private String txnId;
 
     @PrePersist
     public void onCreate() {
-        if (this.createdAt == null) {
-            this.createdAt = LocalDateTime.now();
-        }
-        if (this.status == null) {
-            this.status = BookingStatus.PENDING;
-        }
+        if (this.createdAt == null) this.createdAt = LocalDateTime.now();
+        if (this.status    == null) this.status    = BookingStatus.PENDING;
     }
-
 }

@@ -72,14 +72,14 @@ public class NotificationEventListener {
     }
 
     // ── Helper
-    private void saveNotification(String recipient, String message) {
-        notificationRepository.save(
-                Notification.builder()
-                        .recipientEmail(recipient)
-                        .message(message)
-                        .readStatus(false)
-                        .createdAt(LocalDateTime.now())
-                        .build()
-        );
+//    private void saveNotification(String recipient, String message) {
+//        notificationRepository.save(
+//                Notification.builder()
+//                        .recipientEmail(recipient)
+//                        .message(message)
+//                        .readStatus(false)
+//                        .createdAt(LocalDateTime.now())
+//                        .build()
+//        );
     }
 }
